@@ -1,0 +1,71 @@
+TODO LIST
+- Login
+CLIENT : 
+    - Inscription
+    - Prise de rendez-vous + Choix de services
+    - Historique des rendez-vous
+    - Gestion des preferences ? (Le client choisit l'employe si celui-ci n'est pas encore pris)
+    - Rappel des rendez-vous
+    - Notifications offres speciales
+    - Paiement en ligne (Quand les services sont termines a chaque RDV?)
+EMPLOYE :
+    - Affichage rendez-vous (Si le client n'a pas choisi l'employe peut accepter un RDV)
+    - Gestion profil - Affichage horaire de travail
+    - Suivi taches effectuees
+    - Suivi montant de commission pour la journee 
+MANAGER :
+    - Gestion personnel
+    - Gestion services (nom, prix, delai, commission)
+    - Statistiques
+        * Temps moyen de travail pour chaque employe
+        * Nombre de reservation par jour par mois
+        * Chiffre d'affaire par jour
+        * Benefice par mois en entrant les depenses (salaire, loyer, achat piece)
+
+BASE :
+User : 
+    - _id 
+    - nom
+    - mdp
+    - role (CLT,EMP,MNG)
+
+Service
+    - _id
+    - nom
+    - prix
+    - delai (heure ou minute?)
+    -commission
+
+RDV :
+    - _id
+    - idUser (role CLT)
+    - dateHeure
+    - services (Array)
+        - idService
+        - nom 
+        - prix
+        - delai
+        - commission
+        - idEmploye
+        - etat (termine ou pas)
+    - etat 0: pas encore termine, 1:termine, 2: termine et paye
+
+OffreSpeciale :
+    - _id
+    - nom
+    - decription
+    - dateDebut
+    - dateFin
+    - Quel service ?
+
+Paiement :
+    - _id
+    - idUser
+    - montant
+    - date
+
+Depense :
+    - _id
+    - date
+    - type
+    - valeur
