@@ -1,0 +1,2 @@
+db.createCollection('user')
+db.user.insertOne({nom: 'Fanjava',mdp: '$2a$10$nLsUFfQ0vzLbQgPLutm5ROaTSkxj.lZJtfb3ii3IEYP/aJIKNFw1m'})
