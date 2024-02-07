@@ -19,7 +19,7 @@ router.post('/', async (req, res) => {
     try {
         if (await bcrypt.compare(password, user.mdp)) {
             const token = jwt.sign({ username: user.nom, id: user._id }, 'secret', { expiresIn: '1h' });
-            res.json({ token });
+            res.json({ token,user });
         } else {
             res.status(401).json({ message: 'Mot de passe incorrect' });
         }
