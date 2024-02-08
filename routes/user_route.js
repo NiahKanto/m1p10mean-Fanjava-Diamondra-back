@@ -9,6 +9,7 @@ const User = db.user;
 
      //api login , migerer hoe valide ve ilay mail, ensuite hoe true ve mdp, mireturn données users izyy 
      router.post('/login_user', async (req, res) => {
+      console.log(req.body);
       try {
         let user = await User.findOne({
           nom: req.body.nom
@@ -37,9 +38,11 @@ const User = db.user;
   
         //ty le mamoaka anle tableau ana roles
         var authorities = [];
-  
+        console.log('kely');
+        console.log(user.roles.length);
         for (let i = 0; i < user.roles.length; i++) {
-          authorities.push("ROLE_" + user.roles[i].nom.toUpperCase());
+          authorities.push("ROLE_" + user.roles[i].nomRole.toUpperCase());
+          console.log('boucle');
         }
         res.status(200).send({
           id: user._id,
