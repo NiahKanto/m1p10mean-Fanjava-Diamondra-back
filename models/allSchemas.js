@@ -7,6 +7,7 @@ allSchemas.mongoose = mongoose;
 
 allSchemas.user = require("./user");
 allSchemas.role = require("./roles");
+allSchemas.role = require("./service");
 
 allSchemas.ROLES = ["client", "employe", "manager"];
 
