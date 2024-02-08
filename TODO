@@ -47,6 +47,7 @@ RDV :
         - delai
         - commission
         - idEmploye
+        -nomEmploye
         - etat (termine ou pas)
     - etat 0: pas encore termine, 1:termine, 2: termine et paye
 

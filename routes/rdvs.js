@@ -21,6 +21,21 @@ async function testEmploye(rolesUser){
     }
 }
 
+router.get('/all', authenticateToken, async (req, res) => {
+    const user = req.user;
+    const isClient = await testClient(user.roles)
+    if(isClient === false){
+        return res.status(403).json({message : 'Vous n\'etes pas un client' });
+    }
+    try{ 
+        rdvs = await RDV.find();
+        res.json(rdvs);
+    } catch(error){
+        res.status(500).json({message: error.message})
+    }
+
+});
+
 router.post('/add', authenticateToken, async (req, res) => {
     const user = req.user;
     const isClient = await testClient(user.roles)
@@ -44,6 +59,7 @@ router.post('/add', authenticateToken, async (req, res) => {
                 throw new Error("Un des services est invalide")
             }
             const emp = await User.findById(idEmploye);
+            console.log(emp)
             if(emp === null){
                 throw new Error("Un des employes est inexistant")
             }
@@ -57,6 +73,7 @@ router.post('/add', authenticateToken, async (req, res) => {
                 prix: serviceData.prix,
                 delai: serviceData.delai,
                 commission: serviceData.commission,
+                nomEmploye: emp.nom,
                 etat: 0
             };
         }));
