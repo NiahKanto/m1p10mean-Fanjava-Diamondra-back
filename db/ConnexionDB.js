@@ -1,11 +1,13 @@
 const mongoose = require('mongoose');
 mongoose.set('strictQuery', true);
-const schemas = require("../models/allSchemas");            
+const schemas = require("../models/allSchemas");
+require('dotenv').config();
+const connectionString = process.env.MONGO_URL;
  
 const Role=schemas.role;
 
 exports.getConn= () =>{
-    mailto:mongoose.connect('mongodb+srv://user:root@m1p10mean-v2.qhgidaj.mongodb.net/',
+    mailto:mongoose.connect(connectionString,
     { useNewUrlParser: true,
       useUnifiedTopology: true })
       .then(() => {
