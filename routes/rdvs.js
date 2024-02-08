@@ -4,6 +4,7 @@ const authenticateToken = require('../middlewares/AuthenticateToken')
 const RDV = require('../models/RDV')
 const Service = require('../models/service')
 const User = require('../models/user')
+const Role = require('../models/roles')
 
 async function testClient(rolesUser){
     if(rolesUser.some(role => role.nomRole === 'client')){
@@ -14,7 +15,8 @@ async function testClient(rolesUser){
 }
 
 async function testEmploye(rolesUser){
-    if(rolesUser.some(role => role.nomRole === 'employe')){
+    const role = await Role.findOne({nomRole: 'employe'})
+    if(rolesUser.includes(role._id)){
         return true;
     } else{
         return false;
