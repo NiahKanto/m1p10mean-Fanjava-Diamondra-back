@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 // const config = require("../config/tokenConfig");
 
 const db = require("../models/allSchemas");     
@@ -27,18 +28,17 @@ router.post('/login_user', async (req, res) => {
         authorities.push("ROLE_" + user.roles[i].nomRole.toUpperCase());
         console.log('boucle');
       }
-      res.status(200).send({
-        id: user._id,
-        nom: user.nom,
-        roles: authorities,
-        // accessToken: token
-      });
+      // Mamerina token fa rehefa mandefa requete ilay utilisateur izay vao fantatra ny momba azy 
+      // exp : routes/clients.js
+      // On peut recuperer l'user a partir de req.user
+      const token = jwt.sign({ username: user.nom, id: user._id, roles: user.roles }, 'secret', { expiresIn: '1h' });
+      res.status(200).json({ token });
     } else {
       res.status(401).json({ message: 'Mot de passe incorrect' });
     }
   } catch (err) {
     console.log(err);
-    res.status(403).json({message:'login ou mot de passe erronée'})
+    res.status(403).json({message:err})
   }
 });
 
