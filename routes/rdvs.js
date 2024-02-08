@@ -3,9 +3,18 @@ const router = express.Router();
 const authenticateToken = require('../middlewares/AuthenticateToken')
 const RDV = require('../models/RDV')
 const Service = require('../models/service')
+const User = require('../models/user')
 
 async function testClient(rolesUser){
     if(rolesUser.some(role => role.nomRole === 'client')){
+        return true;
+    } else{
+        return false;
+    }
+}
+
+async function testEmploye(rolesUser){
+    if(rolesUser.some(role => role.nomRole === 'employe')){
         return true;
     } else{
         return false;
@@ -31,7 +40,17 @@ router.post('/add', authenticateToken, async (req, res) => {
         const servicesWithData = await Promise.all(service.map(async (serv) => {
             const {idService, idEmploye} = serv;
             const serviceData = await Service.findById(idService);
-            if(serviceData === null){}
+            if(serviceData === null){
+                throw new Error("Un des services est invalide")
+            }
+            const emp = await User.findById(idEmploye);
+            if(emp === null){
+                throw new Error("Un des employes est inexistant")
+            }
+            isEmploye = await testEmploye(emp.roles);
+            if(isEmploye === false){
+                throw new Error("Un des employes est inexistant")
+            }
             return {
                 ...serv,
                 nom: serviceData.nom,
@@ -46,8 +65,6 @@ router.post('/add', authenticateToken, async (req, res) => {
             dateHeure: new Date(dateHeure),
             service : servicesWithData
         };
-        console.log(rdv);
-
 
         RDV.create(rdv).then(modele => {
             return res.status(200).json({message: 'RDV insere avec succes'})
