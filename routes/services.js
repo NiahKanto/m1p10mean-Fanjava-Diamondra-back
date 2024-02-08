@@ -2,7 +2,6 @@ const express = require('express')
 const router = express.Router();
 const authenticateToken = require('../middlewares/AuthenticateToken')
 const Service = require('../models/service')
-const Role = require('../models/roles')
 
 async function testManager(rolesUser){
     if(rolesUser.some(role => role.nomRole === 'manager')){
@@ -53,7 +52,7 @@ router.post('/add', authenticateToken, async (req, res) => {
     Service.create(req.body).then(modele => {
         return res.status(200).json({message: 'Service insere avec succes'})
     }).catch(error =>{
-        return res.status(500).json({message: 'Erreur lors de l\insertion'})
+        return res.status(500).json({message: 'Erreur lors de l\'insertion :'+error})
     });
 });
 
