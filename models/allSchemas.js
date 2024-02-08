@@ -5,10 +5,11 @@ const allSchemas = {};
 
 allSchemas.mongoose = mongoose;
 
+//atao samihafa pour chaque modele 
 allSchemas.user = require("./user");
 allSchemas.role = require("./roles");
-allSchemas.role = require("./service");
-allSchemas.role = require("./RDV")
+allSchemas.service = require("./service");
+allSchemas.rdv = require("./RDV")
 
 allSchemas.ROLES = ["client", "employe", "manager"];
 
