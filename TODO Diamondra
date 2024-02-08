@@ -1,0 +1,48 @@
+TODO LIST
+
+---hazoy le resaka secret token 
+
+---a savoir
+Structure projet MEAN
+mon-projet-mean/
+├── backend/
+│   ├── models/
+│   │   └── user.js
+│   ├── controllers/
+│   │   └── userController.js
+│   ├── routes/
+│   │   └── userRoutes.js
+│   ├── app.js
+│   ├── package.json
+│   └── .env
+├── frontend/
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── components/
+│   │   │   │   ├── login/
+│   │   │   │   │   ├── login.component.ts
+│   │   │   │   │   └── login.component.html
+│   │   │   │   └── register/
+│   │   │   │       ├── register.component.ts
+│   │   │   │       └── register.component.html
+│   │   │   ├── app.component.ts
+│   │   │   ├── app.module.ts
+│   │   │   └── app-routing.module.ts
+│   │   ├── assets/
+│   │   ├── environments/
+│   │   │   ├── environment.ts
+│   │   │   └── environment.prod.ts
+│   │   └── index.html
+│   ├── package.json
+│   └── angular.json
+├── README.md
+└── .gitignore
+
+
+Se connecter a Mongo: app.js->export->ConnexionDB.js.getConn()
+allSchemas:  utilise mongoose pour acceder a mongoDB
+user_routes.js: route pour l'utilisateur (login_user,inscription_user) 
+user.js: modele 
+
+
+
