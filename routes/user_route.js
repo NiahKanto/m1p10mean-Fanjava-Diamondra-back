@@ -3,6 +3,7 @@ var router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 // const config = require("../config/tokenConfig");
+const authenticateToken = require('../middlewares/AuthenticateToken')
 
 const db = require("../models/allSchemas");     
 const role=db.role;      
@@ -37,7 +38,7 @@ router.post('/login_user', async (req, res) => {
     console.log(err);
     res.status(403).json({message:err})
   }
-});
+}); 
 
 router.post('/inscription_user', async (req, res) => {
   try{
@@ -87,7 +88,7 @@ router.post('/inscription_user', async (req, res) => {
   }
 });
 
-router.get('/fiche_user/:id', async (req, res) => {
+router.get('/fiche_user/:id',authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const user = await User.findOne({ _id: id }).populate('roles');
@@ -109,7 +110,7 @@ router.get('/fiche_user/:id', async (req, res) => {
   }
 });
 
-  router.get('/liste_user/:roleName', async (req, res) => {
+  router.get('/liste_user/:roleName', authenticateToken,async (req, res) => {
     try {
       const { roleName } = req.params;
       const Role= await role.findOne({ nomRole: roleName })
@@ -134,7 +135,7 @@ router.get('/fiche_user/:id', async (req, res) => {
     }
   });
 
-  router.put('/modification_user/:id', async (req, res) => {
+  router.put('/modification_user/:id',authenticateToken, async (req, res) => {
     try {
       const { id } = req.params;
       const update = req.body;
