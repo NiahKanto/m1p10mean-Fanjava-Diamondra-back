@@ -90,7 +90,6 @@ router.post('/inscription_user', async (req, res) => {
 router.get('/fiche_user/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    // const user = await User.findOne({ _id: id });
     const user = await User.findOne({ _id: id }).populate('roles');
 
     if (!user) {
@@ -103,12 +102,38 @@ router.get('/fiche_user/:id', async (req, res) => {
       email: user.email,
       roles:user.roles.map(role => role.nomRole)
     };
-
     res.json(userData);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+  router.get('/liste_user/:roleName', async (req, res) => {
+    try {
+      const { roleName } = req.params;
+      const Role= await role.findOne({ nomRole: roleName })
+      if (!Role) {
+        return res.status(404).json({ message: 'Role not found' });
+      }
+ 
+      const usersWithRole = await User.find({ roles: Role._id });
+
+      const userList = usersWithRole.map(user => ({
+        _id: user._id,
+        nom: user.nom,
+        email: user.email,
+        roles: user.roles.map(role => Role.nomRole)
+      }));
+
+      // Send the list of users with the specified role
+      res.json(userList);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+
 module.exports=router;
     
