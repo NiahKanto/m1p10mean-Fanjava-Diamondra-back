@@ -134,6 +134,45 @@ router.get('/fiche_user/:id', async (req, res) => {
     }
   });
 
+  router.put('/modification_user/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const update = req.body;
+      const user = await User.findById(id);
+      if (!user) {
+        return res.status(404).json({ message: 'Utilisateur non trouvé' });
+      }
+      if (update.nom && user.nom != update.nom) {
+        user.nom = update.nom;
+      }
+      if (update.email && user.email != update.email) {
+        user.email = update.email;
+      }
+      if (update.mdp && update.confirmmdp) {
+        if (update.mdp === update.confirmmdp) {
+          user.mdp = await bcrypt.hash(update.mdp,  10);
+        } else {
+          return res.status(400).json({ message: 'Les mots de passe ne correspondent pas' });
+        }
+      }
+      if (update.role) {
+        const roleFound = await role.findOne({ nomRole: update.role });
+        if (!roleFound) {
+          return res.status(404).json({ message: 'Rôle non trouvé' });
+        }
+        if(roleFound && update.role!=roleFound)
+        {
+          user.roles = [roleFound._id];
+        }
+      }
+      const savedUser = await user.save();
+      res.json(savedUser);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Erreur serveur interne' });
+    }
+  });
 
+  
 module.exports=router;
     
