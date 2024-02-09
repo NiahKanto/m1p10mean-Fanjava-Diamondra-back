@@ -21,12 +21,9 @@ router.post('/login_user', async (req, res) => {
       }
     if (await bcrypt.compare(req.body.mdp, user.mdp)) {
       var authorities = [];
-      console.log('kely');
-      console.log(user.roles.length);
       //ty le mamoaka anle tableau ana roles
       for (let i = 0; i < user.roles.length; i++) {
         authorities.push("ROLE_" + user.roles[i].nomRole.toUpperCase());
-        console.log('boucle');
       }
       // Mamerina token fa rehefa mandefa requete ilay utilisateur izay vao fantatra ny momba azy 
       // exp : routes/clients.js
@@ -55,11 +52,6 @@ router.post('/inscription_user', async (req, res) => {
       res.status(400).json({ message:'mot de passe non identique'})
     }
     //refa ok ny mdp, d mila manao controle sur les roles 
-    // user.save()
-    // .then(() =>{
-    //   console.log('[INFO] inscription reussi');
-    //   res.status(201).json({message:"Compte crée avec succés"})
-    // })
     else {
       role.findOne({ nomRole: "client" })
         .then(role => {
@@ -95,5 +87,28 @@ router.post('/inscription_user', async (req, res) => {
   }
 });
 
+router.get('/fiche_user/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    // const user = await User.findOne({ _id: id });
+    const user = await User.findOne({ _id: id }).populate('roles');
+
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+    // Return les infos persos (pas le mot de passe)
+    const userData = {
+      _id: user._id,
+      nom: user.nom,
+      email: user.email,
+      roles:user.roles.map(role => role.nomRole)
+    };
+
+    res.json(userData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 module.exports=router;
     
