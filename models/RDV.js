@@ -15,7 +15,8 @@ const service4RDVSchema = new Schema({
 const RDVSchema = new Schema({
     idUser: {type: Schema.Types.ObjectId, required: true},
     dateHeure: {type: Date, default: Date.now},
-    service: [service4RDVSchema]
+    service: [service4RDVSchema], 
+    etat:{type: Number, default: 0}
 });
 
 const RDV = mongoose.model('RDV',RDVSchema);

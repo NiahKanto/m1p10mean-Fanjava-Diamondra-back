@@ -88,6 +88,102 @@ router.post('/inscription_user', async (req, res) => {
   }
 });
 
+router.post('/inscription_emp', async (req, res) => {
+  try{
+    console.log(req.body);
+    //mamorona instance anah user iray asiana le data
+    const user =new User( 
+    {
+      ...req.body
+    });
+
+    if(!(user.mdp===user.confirmmdp)){
+      res.status(400).json({ message:'mot de passe non identique'})
+    }
+    //refa ok ny mdp, d mila manao controle sur les roles 
+    else {
+      role.findOne({ nomRole: "employe" })
+        .then(role => {
+          if (!role) {
+            return res.status(404).send({ message: "Role not found" });
+          }
+
+        user.roles = [role._id];
+          user.save()
+            .then(() =>{
+              console.log('[INFO] inscription reussi');
+              res.status(201).json({message:"Compte crée avec succés"})
+            })
+          .catch((error) => {
+            // catch uniquekey for Mail
+            let errMsg;
+            if (error.code == 11000) {
+              errMsg = "L' "+Object.keys(error.keyValue)[0] + " existe déjà";
+            } else {
+              errMsg = error.message;
+            }
+            res.status(400).json({ statusText: "Bad Request", message: errMsg });
+            console.log('[INFO] Email existant!');
+            
+          });
+        
+        });
+      }
+  } catch(err) {
+    console.log(err);
+    console.log('error : inscription inachevée');
+    res.status(403).json({message:'inscription inachevée'})
+  }
+});
+
+router.post('/inscription_manager', async (req, res) => {
+  try{
+    console.log(req.body);
+    //mamorona instance anah user iray asiana le data
+    const user =new User( 
+    {
+      ...req.body
+    });
+
+    if(!(user.mdp===user.confirmmdp)){
+      res.status(400).json({ message:'mot de passe non identique'})
+    }
+    //refa ok ny mdp, d mila manao controle sur les roles 
+    else {
+      role.findOne({ nomRole: "manager" })
+        .then(role => {
+          if (!role) {
+            return res.status(404).send({ message: "Role not found" });
+          }
+
+        user.roles = [role._id];
+          user.save()
+            .then(() =>{
+              console.log('[INFO] inscription reussi');
+              res.status(201).json({message:"Compte crée avec succés"})
+            })
+          .catch((error) => {
+            // catch uniquekey for Mail
+            let errMsg;
+            if (error.code == 11000) {
+              errMsg = "L' "+Object.keys(error.keyValue)[0] + " existe déjà";
+            } else {
+              errMsg = error.message;
+            }
+            res.status(400).json({ statusText: "Bad Request", message: errMsg });
+            console.log('[INFO] Email existant!');
+            
+          });
+        
+        });
+      }
+  } catch(err) {
+    console.log(err);
+    console.log('error : inscription inachevée');
+    res.status(403).json({message:'inscription inachevée'})
+  }
+});
+
 router.get('/fiche_user/:id',authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;

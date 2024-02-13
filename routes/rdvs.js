@@ -15,20 +15,17 @@ async function testClient(rolesUser){
 }
 
 async function testEmploye(rolesUser){
-    const role = await Role.findOne({nomRole: 'employe'})
-    if(rolesUser.includes(role._id)){
-        return true;
-    } else{
+    const role = await Role.findOne({nomRole: 'employe'}).lean(); // Utilisez .lean() pour convertir le résultat en un objet JavaScript simple
+    if(!role) {
+        console.error("Role 'employe' introuvable");
         return false;
     }
+    const employeRoleId = role._id.toString(); //  ID en string pour la comparaison
+    const userHasRole = rolesUser.some(role => role._id.toString() === employeRoleId); // Comparez les IDs sous forme de chaînes
+    return userHasRole;
 }
 
 router.get('/all', authenticateToken, async (req, res) => {
-    const user = req.user;
-    const isClient = await testClient(user.roles)
-    if(isClient === false){
-        return res.status(403).json({message : 'Vous n\'etes pas un client' });
-    }
     try{ 
         rdvs = await RDV.find();
         res.json(rdvs);
@@ -95,5 +92,87 @@ router.post('/add', authenticateToken, async (req, res) => {
         return res.status(500).json({message: 'Erreur lors de l\'insertion :'+error})
     }
 });
+
+router.post('/accept', authenticateToken, async (req, res) => {
+    const user = req.user;
+    const isEmploye = await testEmploye(user.roles);  
+
+    if (!isEmploye) {
+        return res.status(403).json({ message: "Vous n'êtes pas un employé." });
+    }
+
+    const { idRdv } = req.body;
+    if (!idRdv) {
+        return res.status(400).json({ message: "L'identifiant du rendez-vous est requis." });
+    }
+
+    try {
+        const rdv = await RDV.findById(idRdv);
+        if (!rdv) {
+            return res.status(404).json({ message: "Le rendez-vous n'existe pas." });
+        }
+
+        if (rdv.etat !==  0) {
+            return res.status(400).json({ message: "Le rendez-vous a déjà été traité." });
+        }
+        if (rdv.etat ===  0) {
+            rdv.etat =  3; //  3=en Cours
+            await rdv.save();
+            return res.status(200).json({ message: "Le rendez-vous a été accepté avec succès." });
+        }
+    } catch (error) {
+        return res.status(500).json({ message: "Erreur lors de l'acceptation du rendez-vous : " + error });
+    }
+});
+
+router.post('/finish', authenticateToken, async (req, res) => {
+    const user = req.user;
+    const isEmploye = await testEmploye(user.roles);   
+
+    if (!isEmploye) {
+        return res.status(403).json({ message: "Vous n'êtes pas un employé." });
+    }
+
+    const { idRdv } = req.body;
+    if (!idRdv) {
+        return res.status(400).json({ message: "L'identifiant du rendez-vous est requis." });
+    }
+
+    try {
+        const rdv = await RDV.findById(idRdv);
+        if (!rdv) {
+            return res.status(404).json({ message: "Le rendez-vous n'existe pas." });
+        }
+
+        if (rdv.etat ===  1) {
+            return res.status(400).json({ message: "Le rendez-vous a déjà été achevé." });
+        }
+        if (rdv.etat ===  3) {
+            rdv.etat =  1; //  1=fini
+            await rdv.save();
+            return res.status(200).json({ message: "Le rendez-vous a été clos avec succès." });
+        }
+
+
+    } catch (error) {
+        return res.status(500).json({ message: "Erreur lors de l'achevement du rendez-vous : " + error });
+    }
+});
+
+router.get('/list-rdv-by-employee/:id', authenticateToken, async (req, res) => { 
+    const { id } = req.params;
+    if (!id) {
+        return res.status(400).json({ message: "L'ID de l'employé est requis." });
+    }
+
+    try {
+        const rdvs = await RDV.find({ idEmployeResponsable: id });
+        res.json(rdvs);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+
 
 module.exports = router;
