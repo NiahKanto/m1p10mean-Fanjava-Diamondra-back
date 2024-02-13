@@ -10,8 +10,12 @@ CLIENT :
     - Paiement en ligne (Quand les services sont termines a chaque RDV?)
 EMPLOYE :
     - Gestion de rendez-vous (Si le client n'a pas choisi l'employe peut accepter un RDV)
-        -Lister RDV
-        -accepter
+        -Lister RDV (ok)
+        -lister RDV/employe 
+        -accepter RDV (ok)
+                -debuterService
+        -FINIR RDV (ok)
+                -finirService
     - Gestion profil (Back-OK)
         -login/inscription
         -liste/fiche/modif
@@ -43,7 +47,7 @@ Service
     - _id
     - nom
     - prix
-    - delai (heure ou minute?)
+    - delai (heure ou minute?)--> aleo minutes
     -commission
 
 RDV :
@@ -58,8 +62,8 @@ RDV :
         - commission
         - idEmploye
         -nomEmploye
-        - etat (termine ou pas)
-    - etat 0: pas encore termine, 1:termine, 2: termine et paye
+        - etat (crée=0;1: termine,3: en cours)
+    - etat 0: Cree, 1:termine, 2: termine et paye, 3:en cours
 
 OffreSpeciale :
     - _id
@@ -80,3 +84,4 @@ Depense :
     - date
     - type
     - valeur
+
