@@ -5,13 +5,13 @@ const authenticateToken = require('../middlewares/AuthenticateToken')
 const userController = require('../controller/userController');
 
 //api login , migerer hoe valide ve ilay mail, ensuite hoe true ve mdp, mireturn données users izyy 
-router.post('/login_user', authenticateToken,userController.loginUser);
+router.post('/login_user',userController.loginUser);
 
-router.post('/inscription_user', authenticateToken,userController.inscription_user);
+router.post('/inscription_user',userController.inscription_user);
 
 router.post('/inscription_emp',authenticateToken, userController.inscription_emp);
 
-router.post('/inscription_manager',authenticateToken,  userController.inscription_manager);
+router.post('/inscription_manager',  userController.inscription_manager);
 
 router.get('/fiche_user/:id',authenticateToken,  userController.fiche_user);
 

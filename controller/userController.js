@@ -1,9 +1,37 @@
 const db = require("../models/allSchemas");     
 const User = db.user;
+const Role=db.role;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
  
+exports.testManager= async function testManager(rolesUser){
+  if(rolesUser.some(role => role.nomRole === 'manager')){
+      return true;
+  } else{
+      return false;
+  }
+}
+exports.testEmploye= async function testEmploye(rolesUser){
+  console.log('rolesuser=='+rolesUser)
+  const role = await Role.findOne({nomRole: 'employe'}).lean(); // Utilisez .lean() pour convertir le résultat en un objet JavaScript simple
+  if(!role) {
+      console.error("Role 'employe' introuvable");
+      return false;
+  }
+  console.log('role='+role)
+  const employeRoleId = role._id.toString(); //  ID en string pour la comparaison
+  const userHasRole = rolesUser.some(role => role._id.toString() === employeRoleId); // Comparez les IDs sous forme de chaînes
+  return userHasRole;
+}
 
+exports.testClient= async function testClient(rolesUser){
+  if(rolesUser.some(role => role.nomRole === 'client')){
+      return true;
+  } else{
+      return false;
+  }
+}
+ 
 exports.loginUser = async (req, res) => {
   try {
     const user = await User.findOne({ nom: req.body.nom }).populate("roles", "-__v");
