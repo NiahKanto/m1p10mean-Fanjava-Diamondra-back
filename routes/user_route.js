@@ -30,7 +30,7 @@ router.post('/login_user', async (req, res) => {
       // exp : routes/clients.js
       // On peut recuperer l'user a partir de req.user
       const token = jwt.sign({ username: user.nom, id: user._id, roles: user.roles }, 'secret', { expiresIn: '1h' });
-      res.status(200).json({ token });
+      res.status(200).json({ token,authorities });
     } else {
       res.status(401).json({ message: 'Mot de passe incorrect' });
     }
