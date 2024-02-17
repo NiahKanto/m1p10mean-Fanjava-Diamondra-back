@@ -44,7 +44,7 @@ exports.loginUser = async (req, res) => {
           authorities.push("ROLE_" + user.roles[i].nomRole.toUpperCase());
         }
         const token = jwt.sign({ username: user.nom, id: user._id, roles: user.roles }, 'secret', { expiresIn: '1h' });
-        res.status(200).json({ token });
+        res.status(200).json({ token, authorities });
     } else {
       res.status(401).json({ message: 'Mot de passe incorrect' });
     }
