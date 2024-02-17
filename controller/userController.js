@@ -5,11 +5,14 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
  
 exports.testManager= async function testManager(rolesUser){
-  if(rolesUser.some(role => role.nomRole === 'manager')){
-      return true;
-  } else{
+  const role = await Role.findOne({nomRole: 'manager'}).lean(); // Utilisez .lean() pour convertir le résultat en un objet JavaScript simple
+  if(!role) {
+      console.error("Role 'employe' introuvable");
       return false;
   }
+  const employeRoleId = role._id.toString(); //  ID en string pour la comparaison
+  const userHasRole = rolesUser.some(role => role._id.toString() === employeRoleId); // Comparez les IDs sous forme de chaînes
+  return userHasRole;
 }
 exports.testEmploye= async function testEmploye(rolesUser){
   console.log('rolesuser=='+rolesUser)
@@ -25,11 +28,14 @@ exports.testEmploye= async function testEmploye(rolesUser){
 }
 
 exports.testClient= async function testClient(rolesUser){
-  if(rolesUser.some(role => role.nomRole === 'client')){
-      return true;
-  } else{
+  const role = await Role.findOne({nomRole: 'client'}).lean(); // Utilisez .lean() pour convertir le résultat en un objet JavaScript simple
+  if(!role) {
+      console.error("Role 'employe' introuvable");
       return false;
   }
+  const employeRoleId = role._id.toString(); //  ID en string pour la comparaison
+  const userHasRole = rolesUser.some(role => role._id.toString() === employeRoleId); // Comparez les IDs sous forme de chaînes
+  return userHasRole;
 }
  
 exports.loginUser = async (req, res) => {
