@@ -36,22 +36,32 @@ exports.add = async (req, res) => {
             if(serviceData === null){
                 throw new Error("Un des services est invalide")
             }
-            const emp = await User.findById(idEmploye);
-            if(emp === null){
-                throw new Error("Un des employes est inexistant")
-            }
+            if(idEmploye !== null){
+                const emp = await User.findById(idEmploye);
+                if(emp === null){
+                    throw new Error("Un des employes est inexistant")
+                }
 
-            const isEmploye = await userController.testEmploye(emp.roles);
-            if(isEmploye === false){
-                throw new Error("Un des employes est inexistant")
+                const isEmploye = await userController.testEmploye(emp.roles);
+                if(isEmploye === false){
+                    throw new Error("Un des employes est inexistant")
+                }
+                return {
+                    ...serv,
+                    nom: serviceData.nom,
+                    prix: serviceData.prix,
+                    delai: serviceData.delai,
+                    commission: serviceData.commission,
+                    nomEmploye: emp.nom,
+                    etat: 0
+                };
             }
             return {
-                ...serv,
+                idService: idService,
                 nom: serviceData.nom,
                 prix: serviceData.prix,
                 delai: serviceData.delai,
                 commission: serviceData.commission,
-                nomEmploye: emp.nom,
                 etat: 0
             };
         }) );                 
@@ -62,7 +72,7 @@ exports.add = async (req, res) => {
             service : servicesWithData
         };
         RDV.create(rdv).then(modele => {
-            return res.status(200).json({message: 'RDV insere avec succes'})
+            return res.status(200).json({message: 'RDV inséré avec succès'})
         }).catch(error =>{
             return res.status(500).json({message: 'Erreur lors de l\'insertion :'+error})
         });

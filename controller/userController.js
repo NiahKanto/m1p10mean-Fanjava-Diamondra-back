@@ -227,7 +227,7 @@ exports.fiche_user = async (req, res) => {
 exports.liste_user = async (req, res) => {
 try {
     const { roleName } = req.params;
-    const Role= await role.findOne({ nomRole: roleName })
+    const Role= await db.role.findOne({ nomRole: roleName })
     if (!Role) {
         return res.status(404).json({ message: 'Role not found' });
     }
