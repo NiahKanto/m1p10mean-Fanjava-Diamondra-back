@@ -7,8 +7,8 @@ const service4RDVSchema = new Schema({
     prix:{type: Number, required: true},
     delai:{type: Number, required: true},
     commission:{type: Number, required: true},
-    idEmploye: {type: Schema.Types.ObjectId, required: true},
-    nomEmploye: {type: String, required: true},
+    idEmploye: {type: Schema.Types.ObjectId},
+    nomEmploye: {type: String},
     etat:{type: Number, required:true}
 });
 
