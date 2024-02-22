@@ -1,6 +1,7 @@
 const db = require("../models/allSchemas");     
 const RDV = require('../models/RDV')
 const Service = db.service; 
+const mongoose = require('mongoose');
 
 const userController = require('../controller/userController');
 
@@ -46,7 +47,10 @@ exports.add = async (req, res) => {
 exports.findById = async (req, res) => {
     try {
         const { id } = req.params;
-        const services = await Service.findById(id);
+        const objectId = new mongoose.Types.ObjectId(id);
+        const services = await Service.findById(objectId);
+
+        console.log("idd"+id)
     
         if (!services) {
           return res.status(404).json({ message: 'Service non trouvé' });

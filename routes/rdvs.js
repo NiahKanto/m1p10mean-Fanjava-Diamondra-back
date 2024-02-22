@@ -15,7 +15,9 @@ router.post('/accept', authenticateToken,rdvController.accept);
 
 router.post('/finish', authenticateToken, rdvController.finish);
 
-router.get('/list-rdv-by-employee/:id', authenticateToken,rdvController.listByEmployee);
+router.get('/list-rdv-by-employee', authenticateToken,rdvController.listByEmployee);
+
+router.get('/rdvToday', authenticateToken,rdvController.rdvToday);
 
 router.get('/list-by-client', authenticateToken,rdvController.listByClient);
 
