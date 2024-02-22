@@ -62,8 +62,8 @@ RDV :
         - commission
         - idEmploye
         -nomEmploye
-        - etat (crée=0;1: termine,3: en cours)
-    - etat 0: Cree, 1:termine, 2: termine et paye, 3:en cours
+        - etat (crée=0;1= en cours,2= termine)
+    - etat 0: non payé/1=payé 
 
 OffreSpeciale :
     - _id
