@@ -11,14 +11,18 @@ router.post('/add', authenticateToken,rdvController.add);
 
 router.get('/findById/:id', authenticateToken,rdvController.findById);
 
-router.post('/accept', authenticateToken,rdvController.accept);
-
-router.post('/finish', authenticateToken, rdvController.finish);
-
 router.get('/list-rdv-by-employee', authenticateToken,rdvController.listByEmployee);
 
 router.get('/rdvToday', authenticateToken,rdvController.rdvToday);
 
 router.get('/list-by-client', authenticateToken,rdvController.listByClient);
+
+router.post('/acceptServ/:idRDV/:idService', authenticateToken,rdvController.acceptservice);
+
+router.post('/finishServ/:idRDV/:idService', authenticateToken,rdvController.finishservice);
+
+router.get('/findServ4RDV/:idRDV/:idService', authenticateToken,rdvController.findServ4RDV);
+
+router.get('/findServ4RDVbyEmp', authenticateToken,rdvController.findServ4RDVbyEmp);
 
 module.exports = router;
