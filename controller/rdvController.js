@@ -98,78 +98,9 @@ exports.findById = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
       }
 }
-
-exports.accept = async (req, res) => {
-    const user = req.user;
-    const isEmploye = await userController.testEmploye(user.roles);  
-
-    if (!isEmploye) {
-        return res.status(403).json({ message: "Vous n'êtes pas un employé." });
-    }
-
-    const { idRdv } = req.body;
-    if (!idRdv) {
-        return res.status(400).json({ message: "L'identifiant du rendez-vous est requis." });
-    }
-
-    try {
-        const rdv = await RDV.findById(idRdv);
-        if (!rdv) {
-            return res.status(404).json({ message: "Le rendez-vous n'existe pas." });
-        }
-
-        if (rdv.etat !==  0) {
-            return res.status(400).json({ message: "Le rendez-vous a déjà été traité." });
-        }
-        if (rdv.etat ===  0) {
-            rdv.etat =  3; //  3=en Cours
-            await rdv.save();
-            return res.status(200).json({ message: "Le rendez-vous a été accepté avec succès." });
-        }
-    } catch (error) {
-        return res.status(500).json({ message: "Erreur lors de l'acceptation du rendez-vous : " + error });
-    }
-}
-
-exports.finish = async (req, res) => {
-    const user = req.user;
-    const isEmploye = await userController.testEmploye(user.roles);   
-
-    if (!isEmploye) {
-        return res.status(403).json({ message: "Vous n'êtes pas un employé." });
-    }
-
-    const { idRdv } = req.body;
-    if (!idRdv) {
-        return res.status(400).json({ message: "L'identifiant du rendez-vous est requis." });
-    }
-
-    try {
-        const rdv = await RDV.findById(idRdv);
-        if (!rdv) {
-            return res.status(404).json({ message: "Le rendez-vous n'existe pas." });
-        }
-
-        if (rdv.etat ===  1) {
-            return res.status(400).json({ message: "Le rendez-vous a déjà été achevé." });
-        }
-        if (rdv.etat ===  3) {
-            rdv.etat =  1; //  1=fini
-            await rdv.save();
-            return res.status(200).json({ message: "Le rendez-vous a été clos avec succès." });
-        }
-
-
-    } catch (error) {
-        return res.status(500).json({ message: "Erreur lors de l'achevement du rendez-vous : " + error });
-    }
-}
-
+//historiqueRDV
 exports.listByEmployee = async (req, res) => {
     const { id } = req.user;
-    if (!id) {
-        return res.status(400).json({ message: "L'ID de l'employé est requis." });
-    }
     const objectId = new mongoose.Types.ObjectId(id);
 
     try {
@@ -218,6 +149,7 @@ exports.listByClient = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
 exports.rdvToday = async (req, res) => {
     const { id } = req.user;
     if (!id) {
@@ -247,3 +179,101 @@ exports.rdvToday = async (req, res) => {
     }
 };
 
+exports.findServ4RDV = async (req, res) => {
+    try{ 
+        const { idRDV } = req.params;
+        const { idService } = req.params;
+        console.log("idRDV=="+idRDV);
+        console.log("idService=="+idService);
+        const rdvs = await RDV.findOne({'_id':idRDV, 'service.idService':idService  });
+        res.json(rdvs.service[0]);
+    } catch(error){
+        res.status(500).json({message: error.message})
+    }
+}
+//test ah zao
+exports.findServ4RDVbyEmp = async (req, res) => {
+    try{ 
+        const { id } = req.user;
+        const objectId = new mongoose.Types.ObjectId(id);
+ 
+        console.log("idEMP=="+objectId);
+        const rdvs = await RDV.find({'service.idEmploye':objectId });
+        res.json(rdvs);
+    } catch(error){
+        res.status(500).json({message: error.message})
+    }
+}
+
+exports.acceptservice = async (req, res) => {
+    const user = req.user;
+    const isEmploye = await userController.testEmploye(user.roles);  
+
+    if (!isEmploye) {
+        return res.status(403).json({ message: "Vous n'êtes pas un employé." });
+    }
+
+    const { idService } = req.params;
+    const { idRDV } = req.params;
+    try {
+        const { id } = req.user;
+        const idEmp = new mongoose.Types.ObjectId(id);
+
+        console.log("idRDV="+idRDV);
+        console.log("idService="+idService);
+        console.log("id employe="+id);
+        
+        const rdv = await RDV.findOne({'_id':idRDV, 'service.idService':idService  });
+        console.log("rdv="+rdv);
+        console.log('----------------------------------------')
+        console.log("rdv.service[0]="+rdv.service[0]);
+        console.log("rdv.service[0].etat="+rdv.service[0].etat);
+        if (rdv.service[0].etat !==  0) {
+            return res.status(400).json({ message: "Le service a déjà été traité." });
+        }
+        if (rdv.service[0].etat ===  0) {
+            rdv.service[0].etat =  1; //  1=en Cours
+            rdv.service[0].idEmploye=id;
+            await rdv.save();
+            return res.status(200).json({ message: "Le service a été accepté avec succès." });
+        }
+    } catch (error) {
+        return res.status(500).json({ message: "Erreur lors de l'acceptation du service : " + error });
+    }
+}
+
+exports.finishservice = async (req, res) => {
+    const user = req.user;
+    const isEmploye = await userController.testEmploye(user.roles);  
+
+    if (!isEmploye) {
+        return res.status(403).json({ message: "Vous n'êtes pas un employé." });
+    }
+
+    const { idService } = req.params;
+    const { idRDV } = req.params;
+    try {
+        const { id } = req.user;
+        const idEmp = new mongoose.Types.ObjectId(id);
+
+        console.log("idRDV="+idRDV);
+        console.log("idService="+idService);
+        console.log("id employe="+id);
+        
+        const rdv = await RDV.findOne({'_id':idRDV, 'service.idService':idService  });
+        console.log("rdv="+rdv);
+        console.log('----------------------------------------')
+        console.log("rdv.service[0]="+rdv.service[0]);
+        console.log("rdv.service[0].etat="+rdv.service[0].etat);
+        if (rdv.service[0].etat ===  2) {
+            return res.status(400).json({ message: "Le service a déjà été terminé." });
+        }
+        if (rdv.service[0].etat ===  1) {
+            rdv.service[0].etat =  2; 
+            await rdv.save();
+            return res.status(200).json({ message: "Le service a été terminé avec succès." });
+        }
+    } catch (error) {
+        return res.status(500).json({ message: "Erreur lors de l'achevement du service : " + error });
+    }
+}
