@@ -139,7 +139,7 @@ exports.listByClient = async (req, res) => {
         ]);
 
         const rdvs = await RDV.find({idUser: user.id});
-        const totalRdvs = total .reverse();
+        const totalRdvs = total;
         res.json({totalRdvs,rdvs});
     } catch (error) {
         res.status(500).json({ message: error.message });
