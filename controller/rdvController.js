@@ -177,3 +177,41 @@ exports.listByEmployee = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+exports.listByClient = async (req, res) => {
+    const user = req.user;
+    const isClient = await userController.testClient(user.roles)
+
+    if(isClient === false){
+        return res.status(403).json({message : 'Vous n\'etes pas un client' });
+    }
+
+    try {
+        const totalRdvs = await RDV.aggregate([
+            {
+                $match:{
+                    idUser: new db.mongoose.Types.ObjectId(user.id)
+                }
+            },
+            {$unwind: "$service"},
+            {
+                $group:{
+                    _id: '$_id',
+
+                    totalMontant: {$sum : "$service.prix"},
+                    totalDuree: {$sum : "$service.delai"}
+                }
+            }
+        ]);
+        const rdvs = await RDV.aggregate([
+            {
+                $match:{
+                    idUser: new db.mongoose.Types.ObjectId(user.id)
+                }
+            },
+        ]);
+        res.json({totalRdvs,rdvs});
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
