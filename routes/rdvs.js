@@ -17,4 +17,6 @@ router.post('/finish', authenticateToken, rdvController.finish);
 
 router.get('/list-rdv-by-employee/:id', authenticateToken,rdvController.listByEmployee);
 
+router.get('/list-by-client', authenticateToken,rdvController.listByClient);
+
 module.exports = router;
