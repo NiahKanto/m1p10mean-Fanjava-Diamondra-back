@@ -193,15 +193,36 @@ exports.findServ4RDV = async (req, res) => {
 }
 //test ah zao
 exports.findServ4RDVbyEmp = async (req, res) => {
-    try{ 
+    try {
         const { id } = req.user;
         const objectId = new mongoose.Types.ObjectId(id);
  
-        console.log("idEMP=="+objectId);
-        const rdvs = await RDV.find({'service.idEmploye':objectId });
-        res.json(rdvs);
-    } catch(error){
-        res.status(500).json({message: error.message})
+        console.log("idEMP==" + objectId);
+        
+        const rdvs = await RDV.find({'service.idEmploye': objectId });
+        
+        let allServices = [];
+        
+        for (const rdv of rdvs) {
+            for (const service of rdv.service) {
+                const user = await User.findById(rdv.idUser);
+                if (!user) {
+                    throw new Error("Utilisateur non trouvé");
+                }
+                
+                let serviceWithInfo = {
+                    dateHeure: rdv.dateHeure,
+                    idUser: rdv.idUser,
+                    nomUser: user.nom, 
+                    service: service
+                };
+                allServices.push(serviceWithInfo);
+            }
+        }
+
+        res.json(allServices);
+    } catch(error) {
+        res.status(500).json({ message: error.message });
     }
 }
 
