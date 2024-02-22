@@ -121,7 +121,7 @@ exports.inscription_emp = async (req, res) => {
         }
         //refa ok ny mdp, d mila manao controle sur les roles 
         else {
-          role.findOne({ nomRole: "employe" })
+          Role.findOne({ nomRole: "employe" })
             .then(role => {
               if (!role) {
                 return res.status(404).send({ message: "Role not found" });
