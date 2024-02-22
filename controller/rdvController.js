@@ -3,6 +3,7 @@ const User = db.user;
 const RDV = db.rdv;
 const Service = db.service; 
 const userController = require('../controller/userController');
+const mongoose = require('mongoose');
 
 exports.all = async (req, res) => {
     try{ 
@@ -49,7 +50,7 @@ exports.add = async (req, res) => {
                 return {
                     ...serv,
                     nom: serviceData.nom,
-                    prix: serviceData.prix,
+                    prix: serviceData.prix,     
                     delai: serviceData.delai,
                     commission: serviceData.commission,
                     nomEmploye: emp.nom,
@@ -165,13 +166,15 @@ exports.finish = async (req, res) => {
 }
 
 exports.listByEmployee = async (req, res) => {
-    const { id } = req.params;
+    const { id } = req.user;
     if (!id) {
         return res.status(400).json({ message: "L'ID de l'employé est requis." });
     }
+    const objectId = new mongoose.Types.ObjectId(id);
 
     try {
-        const rdvs = await RDV.find({ idEmployeResponsable: id });
+        // Use the ObjectId in the query
+        const rdvs = await RDV.find({ 'service.idEmploye': objectId });
         res.json(rdvs);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -215,3 +218,32 @@ exports.listByClient = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+exports.rdvToday = async (req, res) => {
+    const { id } = req.user;
+    if (!id) {
+        return res.status(400).json({ message: "L'ID de l'employé est requis." });
+    }
+    console.log(id);
+    const objectId = new mongoose.Types.ObjectId(id);
+
+    // Get the current date and time in UTC
+    const today = new Date(new Date().toISOString().slice(0,  10) + "T00:00:00Z");
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() +  1); // Set to tomorrow
+    const endOfToday = new Date(tomorrow); // This will be just after midnight of tomorrow
+    endOfToday.setSeconds(endOfToday.getSeconds() - 1); // Set it just before midnight
+
+    console.log(today);
+    console.log(endOfToday);
+    try {
+        // Use the ObjectId and the date range in the query
+        const rdvs = await RDV.find({
+            'service.idEmploye': objectId,
+            dateHeure: { $gte: today, $lt: endOfToday }
+        });
+        res.json(rdvs);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
