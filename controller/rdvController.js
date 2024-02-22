@@ -121,7 +121,7 @@ exports.listByClient = async (req, res) => {
     }
 
     try {
-        const totalRdvs = await RDV.aggregate([
+        const total = await RDV.aggregate([
             {
                 $match:{
                     idUser: new db.mongoose.Types.ObjectId(user.id)
@@ -137,13 +137,9 @@ exports.listByClient = async (req, res) => {
                 }
             }
         ]);
-        const rdvs = await RDV.aggregate([
-            {
-                $match:{
-                    idUser: new db.mongoose.Types.ObjectId(user.id)
-                }
-            },
-        ]);
+
+        const rdvs = await RDV.find({idUser: user.id});
+        const totalRdvs = total .reverse();
         res.json({totalRdvs,rdvs});
     } catch (error) {
         res.status(500).json({ message: error.message });
