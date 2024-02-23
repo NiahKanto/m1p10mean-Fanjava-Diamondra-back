@@ -187,7 +187,7 @@ exports.findServ4RDV = async (req, res) => {
         res.status(500).json({message: error.message})
     }
 }
-//test ah zao
+
 exports.findServ4RDVbyEmp = async (req, res) => {
     try {
         const { id } = req.user;
@@ -195,26 +195,110 @@ exports.findServ4RDVbyEmp = async (req, res) => {
  
         console.log("idEMP==" + objectId);
         
-        const rdvs = await RDV.find({'service.idEmploye': objectId });
+        const rdvs = await RDV.find();
         
         let allServices = [];
         
         for (const rdv of rdvs) {
             for (const service of rdv.service) {
-                const user = await User.findById(rdv.idUser);
-                if (!user) {
-                    throw new Error("Utilisateur non trouvé");
+                if(service.idEmploye == id)
+                {
+                    const user = await User.findById(rdv.idUser);
+                    if (!user) {
+                        throw new Error("Utilisateur non trouvé");
+                    }
+                    
+                    let serviceWithInfo = {
+                        dateHeure: rdv.dateHeure,
+                        idUser: rdv.idUser,
+                        nomUser: user.nom, 
+                        service: service
+                    };
+                    allServices.push(serviceWithInfo);
                 }
-                
-                let serviceWithInfo = {
-                    dateHeure: rdv.dateHeure,
-                    idUser: rdv.idUser,
-                    nomUser: user.nom, 
-                    service: service
-                };
-                allServices.push(serviceWithInfo);
             }
         }
+
+        res.json(allServices);
+    } catch(error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+exports.listAfaire = async (req, res) => {
+    try { 
+        const rdvs = await RDV.find({'service.etat':0 });
+        
+        let allServices = [];
+        
+        rdvs.forEach(rdv => {
+            rdv.service.forEach(service => {
+                if (service.etat === 0) {
+                    allServices.push(service);
+                }
+            });
+        });
+
+        res.json(allServices);
+    } catch(error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+exports.listEnCours = async (req, res) => {
+    try { 
+        const { id } = req.user;
+        const objectId = new mongoose.Types.ObjectId(id);
+
+        console.log('idEmploye=='+id)
+        const rdvs = await RDV.find({'service.etat':1, 'service.idEmploye': id });
+        let allServices = [];
+        
+        rdvs.forEach(rdv => {
+            rdv.service.forEach(service => {
+
+                if (service.etat === 1) {
+                    allServices.push(service);
+                }
+            });
+        });
+
+        res.json(allServices);
+    } catch(error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+exports.listFini = async (req, res) => {
+    try { 
+        const { id } = req.user;
+        const objectId = new mongoose.Types.ObjectId(id);
+
+         // Get the current date and time in UTC
+        const today = new Date(new Date().toISOString().slice(0,  10) + "T00:00:00Z");
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() +  1); // Set to tomorrow
+        const endOfToday = new Date(tomorrow); // This will be just after midnight of tomorrow
+        endOfToday.setSeconds(endOfToday.getSeconds() - 1); // Set it just before midnight
+
+        console.log(today);
+        console.log(endOfToday);
+
+        const rdvs = await RDV.find({
+            'service.etat':2, 
+            'service.idEmploye': objectId ,
+            dateHeure: { $gte: today, $lt: endOfToday }
+        });
+        
+        let allServices = [];
+        
+        rdvs.forEach(rdv => {
+            rdv.service.forEach(service => {
+                if (service.etat === 2) {
+                    allServices.push(service);
+                }
+            });
+        });
 
         res.json(allServices);
     } catch(error) {
@@ -230,8 +314,8 @@ exports.acceptservice = async (req, res) => {
         return res.status(403).json({ message: "Vous n'êtes pas un employé." });
     }
 
-    const { idService } = req.params;
-    const { idRDV } = req.params;
+    const { idService, idRDV } = req.params;
+
     try {
         const { id } = req.user;
         const idEmp = new mongoose.Types.ObjectId(id);
@@ -240,25 +324,32 @@ exports.acceptservice = async (req, res) => {
         console.log("idService="+idService);
         console.log("id employe="+id);
         
-        const rdv = await RDV.findOne({'_id':idRDV, 'service.idService':idService  });
+        const rdv = await RDV.findOne({'_id': idRDV, 'service.idService': idService });
         console.log("rdv="+rdv);
         console.log('----------------------------------------')
-        console.log("rdv.service[0]="+rdv.service[0]);
-        console.log("rdv.service[0].etat="+rdv.service[0].etat);
-        if (rdv.service[0].etat !==  0) {
-            return res.status(400).json({ message: "Le service a déjà été traité." });
+        
+        let serviceTraiteAvecSucces = false;
+
+        for (const service1 of rdv.service) {
+            console.log("service[i]="+service1);
+            if (service1.etat === 0) {
+                service1.etat = 1;
+                service1.idEmploye = id;
+                serviceTraiteAvecSucces = true;  
+            }
         }
-        if (rdv.service[0].etat ===  0) {
-            rdv.service[0].etat =  1; //  1=en Cours
-            rdv.service[0].idEmploye=id;
+
+        if (serviceTraiteAvecSucces) {
             await rdv.save();
             return res.status(200).json({ message: "Le service a été accepté avec succès." });
+        } else  {
+            return res.status(400).json({ message: "Aucun service n'a été accepté." });
         }
     } catch (error) {
         return res.status(500).json({ message: "Erreur lors de l'acceptation du service : " + error });
     }
 }
-
+ 
 exports.finishservice = async (req, res) => {
     const user = req.user;
     const isEmploye = await userController.testEmploye(user.roles);  
@@ -280,16 +371,24 @@ exports.finishservice = async (req, res) => {
         const rdv = await RDV.findOne({'_id':idRDV, 'service.idService':idService  });
         console.log("rdv="+rdv);
         console.log('----------------------------------------')
-        console.log("rdv.service[0]="+rdv.service[0]);
-        console.log("rdv.service[0].etat="+rdv.service[0].etat);
-        if (rdv.service[0].etat ===  2) {
-            return res.status(400).json({ message: "Le service a déjà été terminé." });
+        
+        let serviceTraiteAvecSucces = false;
+
+        for (const service1 of rdv.service) {
+            console.log("service[i]="+service1);
+            if (service1.etat === 1) {
+                service1.etat = 2; 
+                serviceTraiteAvecSucces = true;  
+            }
         }
-        if (rdv.service[0].etat ===  1) {
-            rdv.service[0].etat =  2; 
+
+        if (serviceTraiteAvecSucces) {
             await rdv.save();
-            return res.status(200).json({ message: "Le service a été terminé avec succès." });
+            return res.status(200).json({ message: "Le service  a été terminé  avec succès." });
+        } else  {
+            return res.status(400).json({ message: "Aucun service n'a été terminé." });
         }
+        
     } catch (error) {
         return res.status(500).json({ message: "Erreur lors de l'achevement du service : " + error });
     }

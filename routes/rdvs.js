@@ -25,4 +25,11 @@ router.get('/findServ4RDV/:idRDV/:idService', authenticateToken,rdvController.fi
 
 router.get('/findServ4RDVbyEmp', authenticateToken,rdvController.findServ4RDVbyEmp);
 
+router.get('/listAfaire', authenticateToken,rdvController.listAfaire);
+
+router.get('/listEnCours', authenticateToken,rdvController.listEnCours);
+
+router.get('/listFini', authenticateToken,rdvController.listFini);
+
+
 module.exports = router;
