@@ -31,5 +31,7 @@ router.get('/listEnCours', authenticateToken,rdvController.listEnCours);
 
 router.get('/listFini', authenticateToken,rdvController.listFini);
 
+router.get('/nextRDV', authenticateToken,rdvController.nextRDV);
+
 
 module.exports = router;

@@ -121,25 +121,20 @@ exports.listByClient = async (req, res) => {
     }
 
     try {
-        const total = await RDV.aggregate([
-            {
-                $match:{
-                    idUser: new db.mongoose.Types.ObjectId(user.id)
-                }
-            },
-            {$unwind: "$service"},
-            {
-                $group:{
-                    _id: '$_id',
-
-                    totalMontant: {$sum : "$service.prix"},
-                    totalDuree: {$sum : "$service.delai"}
-                }
-            }
-        ]);
-
-        const rdvs = await RDV.find({idUser: user.id});
-        const totalRdvs = total;
+        const rdvs = await RDV.find({idUser: user.id}).sort({dateHeure:-1});
+        const totalRdvs = [];
+        rdvs.forEach(rdv =>{
+            totalMontant = 0;
+            totalDuree = 0;
+            rdv.service.forEach(service => {
+                totalMontant = totalMontant + service.prix;
+                totalDuree = totalDuree + service.delai;
+            })
+            totalRdvs.push({
+                totalMontant: totalMontant,
+                totalDuree: totalDuree
+            });
+        });
         res.json({totalRdvs,rdvs});
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -391,5 +386,36 @@ exports.finishservice = async (req, res) => {
         
     } catch (error) {
         return res.status(500).json({ message: "Erreur lors de l'achevement du service : " + error });
+    }
+}
+
+exports.nextRDV = async (req, res) => {
+    const user = req.user;
+    const isClient = await userController.testClient(user.roles)
+
+    if(isClient === false){
+        return res.status(403).json({message : 'Vous n\'etes pas un client' });
+    }
+
+    try {
+        totalMontant = 0;
+        totalDuree = 0;
+        totalRdv={}
+        const rdv = await RDV.findOne({idUser: user.id, dateHeure:{$gt: new Date()}}).sort({dateHeure:1});
+        if(rdv){
+            rdv.service.forEach(service => {
+                totalMontant +=  service.prix;
+                totalDuree += service.delai;
+            })
+    
+            totalRdv = {
+                totalMontant: totalMontant,
+                totalDuree: totalDuree
+            };
+        }
+
+        res.json({totalRdv,rdv});
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 }
