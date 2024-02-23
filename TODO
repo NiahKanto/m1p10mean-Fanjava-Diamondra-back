@@ -1,11 +1,11 @@
 TODO LIST
 - Login
 CLIENT : 
-    - Inscription
+    - Inscription (ok)
     - Prise de rendez-vous + Choix de services (ok)
     - Historique des rendez-vous (ok)
     - Gestion des preferences ? (Le client choisit l'employe si celui-ci n'est pas encore pris)
-    - Rappel des rendez-vous
+    - Rappel des rendez-vous (ok)
     - Notifications offres speciales
     - Paiement en ligne (Quand les services sont termines a chaque RDV?)
 EMPLOYE :

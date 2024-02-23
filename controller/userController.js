@@ -73,7 +73,7 @@ try{
     }
     //refa ok ny mdp, d mila manao controle sur les roles 
     else {
-        role.findOne({ nomRole: "client" })
+        db.role.findOne({ nomRole: "client" })
         .then(role => {
             if (!role) {
             return res.status(404).send({ message: "Role not found" });
@@ -83,18 +83,18 @@ try{
             user.save()
             .then(() =>{
                 console.log('[INFO] inscription reussi');
-                res.status(201).json({message:"Compte crée avec succés"})
+                res.status(201).json({message:"Compte créé avec succès. Connectez-vous pour continuer."})
             })
             .catch((error) => {
-            // catch uniquekey for Mail
-            let errMsg;
-            if (error.code == 11000) {
-                errMsg = "L' "+Object.keys(error.keyValue)[0] + " existe déjà";
-            } else {
-                errMsg = error.message;
-            }
-            res.status(400).json({ statusText: "Bad Request", message: errMsg });
-            console.log('[INFO] Email existant!');
+              // catch uniquekey for Mail
+              let errMsg;
+              if (error.code == 11000) {
+                  errMsg = "L'email existe déjà";
+              } else {
+                  errMsg = error.message;
+              }
+              res.status(400).json({ statusText: "Bad Request", message: errMsg });
+              console.log('[INFO] Email existant!');
             
             });
         
