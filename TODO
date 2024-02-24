@@ -29,7 +29,7 @@ EMPLOYE :
     - Suivi montant de commission pour la journee 
 MANAGER :
     - Gestion personnel
-    - Gestion services (nom, prix, delai, commission)
+    - Gestion services (nom, prix, delai, commission) (ok)
     - Statistiques
         * Temps moyen de travail pour chaque employe
         * Nombre de reservation par jour par mois
@@ -76,6 +76,7 @@ OffreSpeciale :
 Paiement :
     - _id
     - idUser
+    - idRDV
     - montant
     - date
 
