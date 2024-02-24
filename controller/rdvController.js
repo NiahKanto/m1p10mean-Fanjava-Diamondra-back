@@ -419,3 +419,14 @@ exports.nextRDV = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+exports.findRDV4Serv = async (req, res) => {
+    try{ 
+        const { idService } = req.params;
+        console.log("idService=="+idService);
+        const rdvs = await RDV.findOne({ 'service._id':idService  });
+        res.json(rdvs);
+    } catch(error){
+        res.status(500).json({message: error.message})
+    }
+}

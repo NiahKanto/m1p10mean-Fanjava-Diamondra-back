@@ -33,5 +33,6 @@ router.get('/listFini', authenticateToken,rdvController.listFini);
 
 router.get('/nextRDV', authenticateToken,rdvController.nextRDV);
 
+router.get('/findRDV4Serv/:idService', authenticateToken,rdvController.findRDV4Serv);
 
 module.exports = router;

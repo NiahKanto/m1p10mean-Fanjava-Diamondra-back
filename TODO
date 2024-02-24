@@ -9,21 +9,21 @@ CLIENT :
     - Notifications offres speciales
     - Paiement en ligne (Quand les services sont termines a chaque RDV?)
 EMPLOYE :
-    - Gestion de rendez-vous (Si le client n'a pas choisi l'employe peut accepter un RDV)
+    - Gestion de rendez-vous (Si le client n'a pas choisi l'employe peut accepter un RDV) OK
         -Lister RDV (ok)
-        -lister RDV/employe 
+        -lister RDV/employe ok
         -accepter RDV (ok)
-                -debuterService
+                -debuterService ok 
         -FINIR RDV (ok)
-                -finirService
+                -finirService ok 
     - Gestion profil (Back-OK)
         -login/inscription
         -liste/fiche/modif
     - Gestion horaire de travail
         -formulaire d'entree des horaires de travail
         -liste/fiche/modif 
-    - Suivi taches effectuees
-        -en attente
+    - Suivi taches effectuees ok 
+        -en attente 
         -en cours
         -achevé
     - Suivi montant de commission pour la journee 
