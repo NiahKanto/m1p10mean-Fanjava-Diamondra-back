@@ -10,6 +10,7 @@ allSchemas.user = require("./user");
 allSchemas.role = require("./roles");
 allSchemas.service = require("./service");
 allSchemas.rdv = require("./RDV")
+allSchemas.paiement = require("./paiement");
 
 allSchemas.ROLES = ["client", "employe", "manager"];
 

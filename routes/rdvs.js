@@ -35,4 +35,6 @@ router.get('/nextRDV', authenticateToken,rdvController.nextRDV);
 
 router.get('/findRDV4Serv/:idService', authenticateToken,rdvController.findRDV4Serv);
 
+router.post('/pay', authenticateToken,rdvController.pay);
+
 module.exports = router;

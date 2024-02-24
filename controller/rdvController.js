@@ -1,9 +1,11 @@
 const db = require("../models/allSchemas");     
 const User = db.user;
 const RDV = db.rdv;
+const Paiement = db.paiement;
 const Service = db.service; 
 const userController = require('../controller/userController');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 exports.all = async (req, res) => {
     try{ 
@@ -26,17 +28,28 @@ exports.add = async (req, res) => {
         return res.status(400).json({message: "La date du rendez-vous doit etre ulterieure a l'heure actuelle"})
     }
 
+    if(new Date(req.body.dateHeure).getDay() === 0){
+        return res.status(400).json({message: "La date est un dimanche"})
+    }
+
+    heure = new Date(req.body.dateHeure).getHours();
+    if(heure < 8 || heure>17){
+        return res.status(400).json({message: "L\'heure est en dehors de la plage de travail (8h-17h)"})
+    }
+
     try{
         console.log('anaty trry')
         const {dateHeure, service} = req.body;
         const idUser = req.user.id;
 
+        duree = 0;
         const servicesWithData = await Promise.all(service.map(async (serv) => {
             const {idService, idEmploye} = serv;
             const serviceData = await Service.findById(idService);
             if(serviceData === null){
                 throw new Error("Un des services est invalide")
             }
+            duree += serviceData.delai;
             if(idEmploye !== null){
                 const emp = await User.findById(idEmploye);
                 if(emp === null){
@@ -63,15 +76,36 @@ exports.add = async (req, res) => {
                 prix: serviceData.prix,
                 delai: serviceData.delai,
                 commission: serviceData.commission,
-                etat: 0
+                etat: 0,
             };
-        }) );                 
+        }) ); 
+        
+        dateDebut = new Date(dateHeure);
+        dateFin = new Date(new Date(dateHeure).getTime()+(duree*60000));
 
+        console.log(dateDebut + ' - ' + dateFin); 
+        
         const rdv = {
             idUser,
-            dateHeure: new Date(dateHeure),
+            dateHeure: dateDebut,
+            dateFin : dateFin,
             service : servicesWithData
         };
+
+        rdvExist = await RDV.findOne({
+            idUser: idUser,
+            $or:
+            [
+                { dateHeure: { $lte: dateDebut}, dateFin: { $gt: dateDebut}},
+                { dateHeure: { $lt: dateFin}, dateFin: { $gte: dateFin}},
+                { dateHeure: { $gte: dateDebut}, dateFin: { $lte: dateFin}},
+            ] 
+        });
+
+        if(rdvExist){
+            return res.status(400).json({message: "Vous avez déjà un rendez-vous dans cette intervalle de temps"})
+        }
+
         RDV.create(rdv).then(modele => {
             return res.status(200).json({message: 'RDV inséré avec succès'})
         }).catch(error =>{
@@ -122,19 +156,28 @@ exports.listByClient = async (req, res) => {
 
     try {
         const rdvs = await RDV.find({idUser: user.id}).sort({dateHeure:-1});
-        const totalRdvs = [];
-        rdvs.forEach(rdv =>{
+        totalRdvs = [];
+        const promises = rdvs.map(async (rdv) =>{
             totalMontant = 0;
             totalDuree = 0;
             rdv.service.forEach(service => {
                 totalMontant = totalMontant + service.prix;
                 totalDuree = totalDuree + service.delai;
             })
-            totalRdvs.push({
+            const paiements = await Paiement.find({idRDV: rdv._id});
+            totalPaiement = 0;
+            paiements.forEach((paiement) =>{
+                totalPaiement += paiement.montant
+            })
+            total = {
                 totalMontant: totalMontant,
-                totalDuree: totalDuree
-            });
+                totalDuree: totalDuree,
+                totalPaiement: totalPaiement
+            }
+            return total;
         });
+        totalRdvs = await Promise.all(promises);
+        console.log(totalRdvs)
         res.json({totalRdvs,rdvs});
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -428,5 +471,77 @@ exports.findRDV4Serv = async (req, res) => {
         res.json(rdvs);
     } catch(error){
         res.status(500).json({message: error.message})
+    }
+}
+
+exports.pay = async (req, res) => {
+    const user = req.user;
+    const isClient = await userController.testClient(user.roles)
+
+    if(isClient === false){
+        return res.status(403).json({message : 'Vous n\'etes pas un client' });
+    }
+
+    const id= req.body.id
+    const montant = req.body.montant
+    const mdp = req.body.mdp
+
+    if (!id) {
+        return res.status(400).json({ message: "L'ID du rendez-vous est requis." });
+    }
+
+    if(montant<=0){
+        return res.status(400).json({message: 'Le montant a payer ne doit pas etre negatif ou nul'})
+    }
+
+    user2 = await User.findById(user.id)
+
+    const allow = await bcrypt.compare(mdp, user2.mdp);
+    if(!allow){
+        return res.status(400).json({message: 'Le mot de passe est incorrect'})
+    }
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try{
+        const rdv = await RDV.findById(id);
+        if(rdv === null){
+            return res.status(400).json({message: 'Rendez-vous non trouvé'})
+        }
+        montantRDV = 0;
+        montantPaiement = 0;
+        rdv.service.map(serv =>{
+            montantRDV += serv.prix;
+        });
+        const paiements = await Paiement.find({idRDV: id});
+        paiements.map(paiement =>{
+            montantPaiement += paiement.montant;
+        });
+
+        reste = montantRDV - montantPaiement;
+        if(montant > reste){
+            return res.status(400).json({message: 'Le montant est plus grand que le reste à payer'})
+        }
+
+        if(montant === reste){
+            await RDV.findByIdAndUpdate(id,{etat: 1},{new: false})
+        }
+
+        const paiement = {
+            idUser: user.id,
+            idRDV: id,
+            montant
+        };
+
+        Paiement.create(paiement).then(modele => {
+            return res.status(200).json({message: 'Paiement effectué avec succès'})
+        }).catch(error =>{
+            return res.status(500).json({message: 'Erreur lors du paiement :'+error})
+        });
+
+    } catch(error){
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(500).json({message: 'Erreur lors du paiement :'+error})
     }
 }
