@@ -11,7 +11,7 @@ router.post('/add', authenticateToken,rdvController.add);
 
 router.get('/findById/:id', authenticateToken,rdvController.findById);
 
-router.get('/list-rdv-by-employee', authenticateToken,rdvController.listByEmployee);
+router.get('/historic-by-employee', authenticateToken,rdvController.listByEmployee);
 
 router.get('/rdvToday', authenticateToken,rdvController.rdvToday);
 
@@ -36,5 +36,9 @@ router.get('/nextRDV', authenticateToken,rdvController.nextRDV);
 router.get('/findRDV4Serv/:idService', authenticateToken,rdvController.findRDV4Serv);
 
 router.post('/pay', authenticateToken,rdvController.pay);
+
+router.post('/assignerservice/:idService', authenticateToken,rdvController.assignerservice);
+
+router.get('/listServiceNonAssignes', authenticateToken,rdvController.listServiceNonAssignes);
 
 module.exports = router;
