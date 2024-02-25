@@ -6,6 +6,7 @@ const Service = db.service;
 const userController = require('../controller/userController');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const moment = require('moment');
 
 exports.all = async (req, res) => {
     try{ 
@@ -27,7 +28,6 @@ exports.add = async (req, res) => {
     if(new Date(req.body.dateHeure) < Date.now()){
         return res.status(400).json({message: "La date du rendez-vous doit etre ulterieure a l'heure actuelle"})
     }
-
     if(new Date(req.body.dateHeure).getDay() === 0){
         return res.status(400).json({message: "La date est un dimanche"})
     }
@@ -137,8 +137,7 @@ exports.listByEmployee = async (req, res) => {
     const { id } = req.user;
     const objectId = new mongoose.Types.ObjectId(id);
 
-    try {
-        // Use the ObjectId in the query
+    try { 
         const rdvs = await RDV.find({ 'service.idEmploye': objectId });
         res.json(rdvs);
     } catch (error) {
@@ -185,11 +184,13 @@ exports.listByClient = async (req, res) => {
 }
 
 exports.rdvToday = async (req, res) => {
-    const { id } = req.user;
-    if (!id) {
-        return res.status(400).json({ message: "L'ID de l'employé est requis." });
+    const user = req.user;
+    const isEmploye = await userController.testEmploye(user.roles);  
+    if (!isEmploye) {
+        return res.status(403).json({ message: "Vous n'êtes pas un employé." });
     }
-    console.log(id);
+
+    const { id } = req.user;
     const objectId = new mongoose.Types.ObjectId(id);
 
     // Get the current date and time in UTC
@@ -216,11 +217,25 @@ exports.rdvToday = async (req, res) => {
 exports.findServ4RDV = async (req, res) => {
     try{ 
         const { idRDV } = req.params;
-        const { idService } = req.params;
+
+        let allServices = [];
+        const user = req.user;
+        const objectId = new mongoose.Types.ObjectId(user.id);
         console.log("idRDV=="+idRDV);
-        console.log("idService=="+idService);
-        const rdvs = await RDV.findOne({'_id':idRDV, 'service.idService':idService  });
-        res.json(rdvs.service[0]);
+        // console.log("idService=="+idService);
+        const rdv = await RDV.findById({'_id':idRDV});
+        console.log('rdv=='+rdv);
+
+        for (const service of rdv.service) {
+            console.log('service.idEmploye'+service.idEmploye)
+            console.log('objectId'+objectId)
+            if (service.idEmploye && service.idEmploye.equals(objectId)) {
+                allServices.push(service) 
+                console.log(service)
+             }
+        }
+
+        res.json(allServices);
     } catch(error){
         res.status(500).json({message: error.message})
     }
@@ -265,13 +280,16 @@ exports.findServ4RDVbyEmp = async (req, res) => {
 
 exports.listAfaire = async (req, res) => {
     try { 
-        const rdvs = await RDV.find({'service.etat':0 });
-        
+        const { id } = req.user;
+        const objectId = new mongoose.Types.ObjectId(id);
+        const today = moment().startOf('day'); 
         let allServices = [];
+
+        const rdvs = await RDV.find({'service.etat': 0, 'service.idEmploye': objectId});
         
         rdvs.forEach(rdv => {
             rdv.service.forEach(service => {
-                if (service.etat === 0) {
+                if (String(service.idEmploye) === String(id) && service.etat === 0 && moment(rdv.dateHeure).isSame(today, 'day')) {
                     allServices.push(service);
                 }
             });
@@ -285,17 +303,15 @@ exports.listAfaire = async (req, res) => {
 
 exports.listEnCours = async (req, res) => {
     try { 
-        const { id } = req.user;
-        const objectId = new mongoose.Types.ObjectId(id);
-
+        const { id } = req.user; 
+        const today = moment().startOf('day');
         console.log('idEmploye=='+id)
         const rdvs = await RDV.find({'service.etat':1, 'service.idEmploye': id });
         let allServices = [];
         
         rdvs.forEach(rdv => {
             rdv.service.forEach(service => {
-
-                if (service.etat === 1) {
+                if (service.etat === 1  && moment(rdv.dateHeure).isSame(today, 'day')) {
                     allServices.push(service);
                 }
             });
@@ -311,28 +327,16 @@ exports.listFini = async (req, res) => {
     try { 
         const { id } = req.user;
         const objectId = new mongoose.Types.ObjectId(id);
-
-         // Get the current date and time in UTC
-        const today = new Date(new Date().toISOString().slice(0,  10) + "T00:00:00Z");
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() +  1); // Set to tomorrow
-        const endOfToday = new Date(tomorrow); // This will be just after midnight of tomorrow
-        endOfToday.setSeconds(endOfToday.getSeconds() - 1); // Set it just before midnight
-
-        console.log(today);
-        console.log(endOfToday);
-
+        const today = moment().startOf('day');
+        let allServices = [];
         const rdvs = await RDV.find({
             'service.etat':2, 
-            'service.idEmploye': objectId ,
-            dateHeure: { $gte: today, $lt: endOfToday }
+            'service.idEmploye': objectId
         });
-        
-        let allServices = [];
         
         rdvs.forEach(rdv => {
             rdv.service.forEach(service => {
-                if (service.etat === 2) {
+                if (service.etat === 2  && moment(rdv.dateHeure).isSame(today, 'day')) {
                     allServices.push(service);
                 }
             });
@@ -347,32 +351,28 @@ exports.listFini = async (req, res) => {
 exports.acceptservice = async (req, res) => {
     const user = req.user;
     const isEmploye = await userController.testEmploye(user.roles);  
-
     if (!isEmploye) {
         return res.status(403).json({ message: "Vous n'êtes pas un employé." });
     }
-
     const { idService, idRDV } = req.params;
-
+    const objectId = new mongoose.Types.ObjectId(idService);
     try {
-        const { id } = req.user;
-        const idEmp = new mongoose.Types.ObjectId(id);
+        // Obtenir les horaires de travail
+        const jourActuel = moment().format('dddd').toLowerCase();
+        const heureActuelle = moment().format('H');
 
-        console.log("idRDV="+idRDV);
-        console.log("idService="+idService);
-        console.log("id employe="+id);
-        
-        const rdv = await RDV.findOne({'_id': idRDV, 'service.idService': idService });
-        console.log("rdv="+rdv);
-        console.log('----------------------------------------')
-        
+        // Vérifier si c'est un jour ouvrable et si l'heure actuelle est comprise entre 8h et 17h
+        const horaireValide = jourActuel !== 'lundi' && heureActuelle >= 8 && heureActuelle < 17;
+        if (!horaireValide) {
+            return res.status(400).json({ message: "Impossible d'accepter le service en dehors des horaires de travail." });
+        }
+
+        const rdv = await RDV.findOne({'_id': idRDV, 'service._id': idService }); 
         let serviceTraiteAvecSucces = false;
 
         for (const service1 of rdv.service) {
-            console.log("service[i]="+service1);
-            if (service1.etat === 0) {
-                service1.etat = 1;
-                service1.idEmploye = id;
+            if (service1._id.equals(objectId) ) {
+                service1.etat = 1; 
                 serviceTraiteAvecSucces = true;  
             }
         }
@@ -395,26 +395,16 @@ exports.finishservice = async (req, res) => {
     if (!isEmploye) {
         return res.status(403).json({ message: "Vous n'êtes pas un employé." });
     }
-
     const { idService } = req.params;
     const { idRDV } = req.params;
+    const objectId = new mongoose.Types.ObjectId(idService);
     try {
-        const { id } = req.user;
-        const idEmp = new mongoose.Types.ObjectId(id);
-
-        console.log("idRDV="+idRDV);
-        console.log("idService="+idService);
-        console.log("id employe="+id);
-        
-        const rdv = await RDV.findOne({'_id':idRDV, 'service.idService':idService  });
-        console.log("rdv="+rdv);
-        console.log('----------------------------------------')
-        
+        const { id } = req.user; 
+        const rdv = await RDV.findOne({'_id':idRDV, 'service._id':idService  }); 
         let serviceTraiteAvecSucces = false;
 
         for (const service1 of rdv.service) {
-            console.log("service[i]="+service1);
-            if (service1.etat === 1) {
+            if (service1._id.equals(objectId)) {
                 service1.etat = 2; 
                 serviceTraiteAvecSucces = true;  
             }
@@ -543,5 +533,74 @@ exports.pay = async (req, res) => {
         await session.abortTransaction();
         session.endSession();
         return res.status(500).json({message: 'Erreur lors du paiement :'+error})
+    }
+}
+
+exports.assignerservice = async (req, res) => {
+    const user = req.user;
+    const isEmploye = await userController.testEmploye(user.roles);  
+    if (!isEmploye) {
+        return res.status(403).json({ message: "Vous n'êtes pas un employé." });
+    }
+
+    const { idService } = req.params;
+    console.log('idService: ' + idService);
+    try {
+        const { id } = req.user; 
+        const objectId = new mongoose.Types.ObjectId(idService);
+        const rdv = await RDV.findOne({'service._id': objectId }); 
+
+        if (!rdv) {
+            return res.status(404).json({ message: "Rendez-vous non trouvé." });
+        }
+
+        for (const service of rdv.service) {
+            if (service._id.equals(objectId)) {
+                service.idEmploye = id;
+                await rdv.save();
+                return res.status(200).json({ message: "Le service a été assigné avec succès." });
+            }
+        }
+
+        return res.status(404).json({ message: "Aucun service correspondant trouvé." });
+    } catch (error) {
+        console.error("Erreur lors de l'assignation du service :", error);
+        return res.status(500).json({ message: "Erreur lors de l'assignation du service : " + error });
+    }
+}
+
+
+exports.listServiceNonAssignes = async (req, res) => {
+    try { 
+        const user = req.user;
+        const isClient = await userController.testClient(user.roles);   
+        if (isClient) {
+            return res.status(403).json({ message: "Vous n'êtes pas autorisé a voir cette liste." });
+        }
+        const rdvs = await RDV.find({'service.etat': 0});
+        let allServices = [];
+        
+        for (const rdv of rdvs) {
+            for (const service of rdv.service) {
+                if (service.idEmploye === undefined) {
+                    const user = await User.findById(rdv.idUser);
+                    if (!user) {
+                        throw new Error("Utilisateur non trouvé");
+                    }
+                    let serviceWithInfo = {
+                        dateHeure: rdv.dateHeure,
+                        idUser: rdv.idUser,
+                        nomUser: user.nom, 
+                        service: service
+                    };
+                    allServices.push(serviceWithInfo);
+                    console.log(serviceWithInfo);
+                }
+            }
+        }
+
+        res.json(allServices);
+    } catch(error) {
+        res.status(500).json({ message: error.message });
     }
 }
