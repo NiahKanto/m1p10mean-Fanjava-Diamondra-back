@@ -21,7 +21,7 @@ router.post('/acceptServ/:idRDV/:idService', authenticateToken,rdvController.acc
 
 router.post('/finishServ/:idRDV/:idService', authenticateToken,rdvController.finishservice);
 
-router.get('/findServ4RDV/:idRDV/:idService', authenticateToken,rdvController.findServ4RDV);
+router.get('/findServ4RDV/:idRDV/', authenticateToken,rdvController.findServ4RDV);
 
 router.get('/findServ4RDVbyEmp', authenticateToken,rdvController.findServ4RDVbyEmp);
 

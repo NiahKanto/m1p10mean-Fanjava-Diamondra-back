@@ -217,11 +217,25 @@ exports.rdvToday = async (req, res) => {
 exports.findServ4RDV = async (req, res) => {
     try{ 
         const { idRDV } = req.params;
-        const { idService } = req.params;
+
+        let allServices = [];
+        const user = req.user;
+        const objectId = new mongoose.Types.ObjectId(user.id);
         console.log("idRDV=="+idRDV);
-        console.log("idService=="+idService);
-        const rdvs = await RDV.findOne({'_id':idRDV, 'service.idService':idService  });
-        res.json(rdvs.service[0]);
+        // console.log("idService=="+idService);
+        const rdv = await RDV.findById({'_id':idRDV});
+        console.log('rdv=='+rdv);
+
+        for (const service of rdv.service) {
+            console.log('service.idEmploye'+service.idEmploye)
+            console.log('objectId'+objectId)
+            if (service.idEmploye && service.idEmploye.equals(objectId)) {
+                allServices.push(service) 
+                console.log(service)
+             }
+        }
+
+        res.json(allServices);
     } catch(error){
         res.status(500).json({message: error.message})
     }
