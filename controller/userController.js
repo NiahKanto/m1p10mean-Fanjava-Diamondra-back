@@ -109,7 +109,13 @@ try{
 
 exports.inscription_emp = async (req, res) => {
     try{
-        console.log(req.body);
+        const userLogged = req.user;
+        const isManager = await this.testManager(userLogged.roles)
+
+        if(isManager === false){
+            return res.status(403).json({message : 'Vous n\'etes pas un manager' });
+        }
+
         //mamorona instance anah user iray asiana le data
         const user =new User( 
         {
@@ -137,7 +143,7 @@ exports.inscription_emp = async (req, res) => {
                 // catch uniquekey for Mail
                 let errMsg;
                 if (error.code == 11000) {
-                  errMsg = "L' "+Object.keys(error.keyValue)[0] + " existe déjà";
+                  errMsg = "L'email existe déjà";
                 } else {
                   errMsg = error.message;
                 }
