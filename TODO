@@ -7,7 +7,7 @@ CLIENT :
     - Gestion des preferences ? (Le client choisit l'employe si celui-ci n'est pas encore pris)
     - Rappel des rendez-vous (ok)
     - Notifications offres speciales
-    - Paiement en ligne (Quand les services sont termines a chaque RDV?)
+    - Paiement en ligne (Quand les services sont termines a chaque RDV?) (ok)
 EMPLOYE :
     - Gestion de rendez-vous (Si le client n'a pas choisi l'employe peut accepter un RDV) OK
         -Lister RDV (ok)
@@ -28,7 +28,7 @@ EMPLOYE :
         -achevé
     - Suivi montant de commission pour la journee 
 MANAGER :
-    - Gestion personnel
+    - Gestion personnel 
     - Gestion services (nom, prix, delai, commission) (ok)
     - Statistiques
         * Temps moyen de travail pour chaque employe
@@ -71,7 +71,8 @@ OffreSpeciale :
     - decription
     - dateDebut
     - dateFin
-    - Quel service ?
+    - services
+    - prixTotal
 
 Paiement :
     - _id
