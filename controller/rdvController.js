@@ -39,12 +39,16 @@ exports.add = async (req, res) => {
 
     try{
         console.log('anaty trry')
-        const {dateHeure, service} = req.body;
+        const {dateHeure, service, reduction} = req.body;
         const idUser = req.user.id;
 
         duree = 0;
         const servicesWithData = await Promise.all(service.map(async (serv) => {
             const {idService, idEmploye} = serv;
+            prix = serviceData.prix;
+            if(reduction){
+                prix = serviceData.prix - (serviceData.prix * (reduction/100));
+            }
             const serviceData = await Service.findById(idService);
             if(serviceData === null){
                 throw new Error("Un des services est invalide")
@@ -63,7 +67,7 @@ exports.add = async (req, res) => {
                 return {
                     ...serv,
                     nom: serviceData.nom,
-                    prix: serviceData.prix,     
+                    prix: prix,     
                     delai: serviceData.delai,
                     commission: serviceData.commission,
                     nomEmploye: emp.nom,
@@ -73,7 +77,7 @@ exports.add = async (req, res) => {
             return {
                 idService: idService,
                 nom: serviceData.nom,
-                prix: serviceData.prix,
+                prix: prix,
                 delai: serviceData.delai,
                 commission: serviceData.commission,
                 etat: 0,
