@@ -1,0 +1,16 @@
+{
+    "name": "m1p10mean-fanjava-diamondra", 
+    "builds": [
+      {
+        "src": "./app.js",
+        "use": "@vercel/node"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/(.*)",
+        "dest": "app.js"
+      }
+    ]
+  }
+  
