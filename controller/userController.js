@@ -271,7 +271,7 @@ try {
     }
     if (update.mdp && update.confirmmdp) {
         if (update.mdp === update.confirmmdp) {
-        user.mdp = await bcrypt.hash(update.mdp,  10);
+        user.mdp =update.mdp;
         } else {
         return res.status(400).json({ message: 'Les mots de passe ne correspondent pas' });
         }
@@ -293,3 +293,76 @@ try {
     res.status(500).json({ message: 'Erreur serveur interne' });
     }
 }
+
+exports.modif_userfiche = async (req, res) => {
+  try {
+      const { id } = req.user;
+      const update = req.body;
+      const user = await User.findById(id);
+      console.log(user);
+      console.log('body==='+update)
+      if (!user) {
+          return res.status(404).json({ message: 'Utilisateur non trouvé' });
+      }
+      if (update.nom && user.nom != update.nom) {
+          user.nom = update.nom;
+      }
+      if (update.email && user.email != update.email) {
+          user.email = update.email;
+      }
+      const savedUser = await user.save();
+      res.json(savedUser);
+      } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Erreur serveur interne' });
+      }
+  }
+
+exports.modif_userMDP = async (req, res) => {
+  try {
+    const { id } = req.user;
+    const update = req.body;
+    const user = await User.findById(id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+    
+    const isMatch = await bcrypt.compare(update.mdpAncien, user.mdp);
+    console.log('match ve='+isMatch);
+    if (isMatch) { 
+      user.mdp = update.mdpVaovao;
+      user.confirmmdp = update.mdpVaovao;
+      
+      const savedUser = await user.save();
+      res.json(savedUser);
+    } else {
+      return res.status(400).json({ message: 'Mot de passe incorrect' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erreur serveur interne' });
+  }
+}
+  
+
+exports.ma_fiche = async (req, res) => {
+  try {
+    const { id } = req.user;
+    const user = await User.findOne({ _id: id }).populate('roles');
+
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+    const userData = {
+      _id: user._id,
+      nom: user.nom,
+      email: user.email,
+      roles: user.roles.map(role => role.nomRole)
+    };
+    res.json(userData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
