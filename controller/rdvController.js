@@ -7,6 +7,15 @@ const userController = require('../controller/userController');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const moment = require('moment');
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'fanjavaniah@gmail.com',
+        pass: 'ayozxfgxmlrhapzj'
+    }
+});
 
 exports.all = async (req, res) => {
     try{ 
@@ -39,16 +48,12 @@ exports.add = async (req, res) => {
 
     try{
         console.log('anaty trry')
-        const {dateHeure, service, reduction} = req.body;
+        const {dateHeure, service} = req.body;
         const idUser = req.user.id;
 
         duree = 0;
         const servicesWithData = await Promise.all(service.map(async (serv) => {
             const {idService, idEmploye} = serv;
-            prix = serviceData.prix;
-            if(reduction){
-                prix = serviceData.prix - (serviceData.prix * (reduction/100));
-            }
             const serviceData = await Service.findById(idService);
             if(serviceData === null){
                 throw new Error("Un des services est invalide")
@@ -67,7 +72,7 @@ exports.add = async (req, res) => {
                 return {
                     ...serv,
                     nom: serviceData.nom,
-                    prix: prix,     
+                    prix: serviceData.prix,     
                     delai: serviceData.delai,
                     commission: serviceData.commission,
                     nomEmploye: emp.nom,
@@ -77,7 +82,7 @@ exports.add = async (req, res) => {
             return {
                 idService: idService,
                 nom: serviceData.nom,
-                prix: prix,
+                prix: serviceData.prix,
                 delai: serviceData.delai,
                 commission: serviceData.commission,
                 etat: 0,
@@ -527,8 +532,21 @@ exports.pay = async (req, res) => {
             montant
         };
 
+        const mailOptions ={
+            from: 'fanjavaniah@gmail.com',
+            to: user2.email,
+            subject: 'Reçu paiement du '+new Date(),
+            text: 'Paiement d\'une somme de '+montant+' Ar'
+        }
+
         Paiement.create(paiement).then(modele => {
-            return res.status(200).json({message: 'Paiement effectué avec succès'})
+            transporter.sendMail(mailOptions, (error, info) => {
+                if(error){
+                    res.status(500).json({message: 'Erreur lors de l\'envoi de l\'email'+error});
+                } else{
+                    return res.status(200).json({message: 'Paiement effectué avec succès'})
+                }
+            });
         }).catch(error =>{
             return res.status(500).json({message: 'Erreur lors du paiement :'+error})
         });
