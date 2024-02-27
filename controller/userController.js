@@ -271,7 +271,7 @@ try {
     }
     if (update.mdp && update.confirmmdp) {
         if (update.mdp === update.confirmmdp) {
-        user.mdp =update.mdp;
+        user.mdp = await bcrypt.hash(update.mdp,  10);
         } else {
         return res.status(400).json({ message: 'Les mots de passe ne correspondent pas' });
         }
