@@ -43,4 +43,6 @@ router.get('/listServiceNonAssignes', authenticateToken,rdvController.listServic
 
 router.get('/statRDVMonth', authenticateToken,rdvController.statRDVMonth);
 
+router.get('/statRDVDay/:month', authenticateToken,rdvController.statRDVDay);
+
 module.exports = router;

@@ -664,3 +664,42 @@ exports.statRDVMonth = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+
+exports.statRDVDay = async (req, res) => {
+    const user = req.user;
+    const isManager = await userController.testManager(user.roles);  
+    if (!isManager) {
+        return res.status(403).json({ message: "Vous n'êtes pas un manager." });
+    }
+
+    const { month } = req.params;
+    m = parseInt(month)
+
+    try{
+        const year = (new Date()).getFullYear();
+
+        const result = await RDV.aggregate([
+            {
+                $match: {
+                    $expr: {
+                        $and: [
+                            { $eq: [{ $month: '$dateHeure' },  m ] },
+                            { $eq: [{ $year: '$dateHeure' }, year] }
+                        ]
+                    }
+                },
+            },
+            {
+                $group: {
+                    _id: { day: {$dayOfMonth: "$dateHeure"}, month: {$month: "$dateHeure"}, year: {$year: "$dateHeure"}},
+                    total: {$sum: 1}
+                },
+            }
+        ])
+        res.json(result)
+    }
+    catch(error) {
+        res.status(500).json({ message: error.message });
+    }
+}
