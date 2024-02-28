@@ -704,3 +704,25 @@ exports.statRDVDay = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+exports.detailsServ4RDVbyID = async (req, res) => {
+    try{ 
+        const { idRDV } = req.params;
+
+        let allServices = [];
+        const user = req.user;
+        // const objectId = new mongoose.Types.ObjectId(user.id);
+        console.log("idRDV=="+idRDV); 
+        const rdv = await RDV.findById(idRDV)
+        console.log('rdv=='+rdv);
+
+        for (const service of rdv.service) { 
+                allServices.push(service) 
+                console.log('serviceeee'+service)
+        }
+
+        res.json(allServices);
+    } catch(error){
+        res.status(500).json({message: error.message})
+    }
+}
