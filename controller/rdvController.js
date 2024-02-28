@@ -202,7 +202,6 @@ exports.rdvToday = async (req, res) => {
     const { id } = req.user;
     const objectId = new mongoose.Types.ObjectId(id);
 
-    // Get the current date and time in UTC
     const today = new Date(new Date().toISOString().slice(0,  10) + "T00:00:00Z");
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() +  1); // Set to tomorrow
@@ -212,7 +211,6 @@ exports.rdvToday = async (req, res) => {
     console.log(today);
     console.log(endOfToday);
     try {
-        // Use the ObjectId and the date range in the query
         const rdvs = await RDV.find({
             'service.idEmploye': objectId,
             dateHeure: { $gte: today, $lt: endOfToday }
@@ -299,7 +297,7 @@ exports.listAfaire = async (req, res) => {
         rdvs.forEach(rdv => {
             rdv.service.forEach(service => {
                 if (String(service.idEmploye) === String(id) && service.etat === 0 && moment(rdv.dateHeure).isSame(today, 'day')) {
-                    allServices.push(service);
+                    allServices.push(service);  
                 }
             });
         });
@@ -443,6 +441,7 @@ exports.nextRDV = async (req, res) => {
         totalMontant = 0;
         totalDuree = 0;
         totalRdv={}
+        let rdvDetails=null;
         const rdv = await RDV.findOne({idUser: user.id, dateHeure:{$gt: new Date()}}).sort({dateHeure:1});
         if(rdv){
             rdv.service.forEach(service => {
@@ -454,9 +453,19 @@ exports.nextRDV = async (req, res) => {
                 totalMontant: totalMontant,
                 totalDuree: totalDuree
             };
+            const user = await User.findById(rdv.idUser);
+            if (!user) {
+                throw new Error("Utilisateur non trouvé");
+            }
+            rdvDetails = {
+                dateHeure: rdv.dateHeure,
+                idUser: rdv.idUser,
+                nomUser: user.nom, 
+                service: rdv.service
+            };
         }
 
-        res.json({totalRdv,rdv});
+        res.json({totalRdv,rdvDetails});
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -590,7 +599,6 @@ exports.assignerservice = async (req, res) => {
         return res.status(500).json({ message: "Erreur lors de l'assignation du service : " + error });
     }
 }
-
 
 exports.listServiceNonAssignes = async (req, res) => {
     try { 
