@@ -626,3 +626,33 @@ exports.listServiceNonAssignes = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+exports.statRDVMonth = async (req, res) => {
+    const user = req.user;
+    const isManager = await userController.testManager(user.roles);  
+    if (!isManager) {
+        return res.status(403).json({ message: "Vous n'êtes pas un manager." });
+    }
+
+    try{
+        const year = (new Date()).getFullYear();
+
+        const result = await RDV.aggregate([
+            {
+                $match: {
+                    dateHeure: { $gte: new Date(year,0,1), $lte: new Date(year,12,1)}
+                },
+            },
+            {
+                $group: {
+                    _id: { month: {$month: "$dateHeure"}, year: {$year: "$dateHeure"}},
+                    total: {$sum: 1}
+                },
+            }
+        ])
+        res.json(result)
+    }
+    catch(error) {
+        res.status(500).json({ message: error.message });
+    }
+}

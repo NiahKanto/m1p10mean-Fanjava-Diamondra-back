@@ -41,4 +41,6 @@ router.post('/assignerservice/:idService', authenticateToken,rdvController.assig
 
 router.get('/listServiceNonAssignes', authenticateToken,rdvController.listServiceNonAssignes);
 
+router.get('/statRDVMonth', authenticateToken,rdvController.statRDVMonth);
+
 module.exports = router;
