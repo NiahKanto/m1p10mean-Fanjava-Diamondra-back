@@ -10,4 +10,6 @@ router.get('/list', authenticateToken, offreController.list);
 
 router.get('/listToday', authenticateToken, offreController.listToday);
 
+router.get('/detailsPack', authenticateToken, offreController.detailsPack);
+
 module.exports = router;
