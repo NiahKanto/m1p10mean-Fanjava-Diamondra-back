@@ -15,7 +15,10 @@ var cors = require('cors');
 
 var app = express();
 
-app.use(cors());
+// app.use(cors());
+app.use(cors({
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] // Ajoutez OPTIONS pour prendre en charge les pré-vérifications CORS
+}));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
