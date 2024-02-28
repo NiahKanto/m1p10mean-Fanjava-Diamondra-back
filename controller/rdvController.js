@@ -458,6 +458,7 @@ exports.nextRDV = async (req, res) => {
                 throw new Error("Utilisateur non trouvé");
             }
             rdvDetails = {
+                _id: rdv._id,
                 dateHeure: rdv.dateHeure,
                 idUser: rdv.idUser,
                 nomUser: user.nom, 
