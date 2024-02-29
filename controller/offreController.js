@@ -83,15 +83,9 @@ exports.listToday = async (req, res) => {
 
 exports.detailsPack = async (req, res) => {
     try { 
-        const offres = await Offre.find({
-            dateDebut : { $lte : new Date() },
-            dateFin : { $gte: new Date() }
-        }); 
-        let services = []; 
-        offres.forEach(offre => { 
-            services = services.concat(offre.service);
-        }); 
-        res.json(services);
+        const {id}=req.params;
+        const offres = await Offre.findById(id);
+        res.json(offres);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

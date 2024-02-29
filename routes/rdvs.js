@@ -45,4 +45,6 @@ router.get('/statRDVMonth', authenticateToken,rdvController.statRDVMonth);
 
 router.get('/statRDVDay/:month', authenticateToken,rdvController.statRDVDay);
 
+router.get('/detailsServ4RDVbyID/:idRDV/', authenticateToken,rdvController.detailsServ4RDVbyID);
+
 module.exports = router;

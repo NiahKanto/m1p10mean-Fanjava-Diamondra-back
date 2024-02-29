@@ -8,8 +8,8 @@ router.post('/add', authenticateToken, offreController.add);
 
 router.get('/list', authenticateToken, offreController.list);
 
-router.get('/listToday', authenticateToken, offreController.listToday);
+router.get('/listToday', authenticateToken, offreController.listToday); 
 
-router.get('/detailsPack', authenticateToken, offreController.detailsPack);
+router.get('/detailsPack/:id', authenticateToken, offreController.detailsPack);
 
 module.exports = router;
