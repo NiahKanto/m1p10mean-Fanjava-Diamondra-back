@@ -54,12 +54,19 @@ exports.add = async (req, res) => {
 
         duree = 0;
         const servicesWithData = await Promise.all(service.map(async (serv) => {
-            const {idService, idEmploye} = serv;
+            const {idService, idEmploye, prix} = serv;
+            var totalPrix = 0;
             const serviceData = await Service.findById(idService);
             if(serviceData === null){
                 throw new Error("Un des services est invalide")
             }
             duree += serviceData.delai;
+            if(prix){
+                totalPrix = prix;
+            }
+            else{
+                totalPrix = serviceData.prix;
+            }
             if(idEmploye !== null){
                 const emp = await User.findById(idEmploye);
                 if(emp === null){
@@ -73,7 +80,7 @@ exports.add = async (req, res) => {
                 return {
                     ...serv,
                     nom: serviceData.nom,
-                    prix: serviceData.prix,     
+                    prix: totalPrix,     
                     delai: serviceData.delai,
                     commission: serviceData.commission,
                     nomEmploye: emp.nom,
@@ -83,7 +90,7 @@ exports.add = async (req, res) => {
             return {
                 idService: idService,
                 nom: serviceData.nom,
-                prix: serviceData.prix,
+                prix: totalPrix,
                 delai: serviceData.delai,
                 commission: serviceData.commission,
                 etat: 0,
@@ -171,11 +178,9 @@ exports.listByClient = async (req, res) => {
             totalMontant = 0;
             totalDuree = 0;
             
-            rdv.service.forEach(serv => {
-                
+            rdv.service.forEach(serv => {               
                 totalMontant +=  serv.prix;
-                totalDuree += serv.delai;
-                
+                totalDuree += serv.delai;             
             })
             totalPaiement = 0;
             paiements.forEach((paiement) =>{
@@ -835,11 +840,54 @@ exports.statBenefice = async (req, res) => {
                     total: {$sum: "$prix"}
                 },
             }
-        ])
+        ]);
+
+        const resultCommission = await RDV.aggregate([
+            {
+                $match: {
+                    dateHeure: { $gte: new Date(year,0,1), $lte: new Date(year,12,1)}
+                },
+            },
+            {
+                $group: {
+                    _id: { month: {$month: "$dateHeure"}, year: {$year: "$dateHeure"}},
+                    total: {$sum: "$service.prix"}
+                },
+            }
+        ]);
+
+        const rdvs = await RDV.find({'etat': 1});
+        let allRdv = [];
+        
+        for (const rdv of rdvs) {
+            var total=0;
+            for (const service of rdv.service) {
+                commission = ((service.commission*service.prix)/100)
+                total += commission;
+            }
+            let rdvInfo = {
+                date: (rdv.dateHeure.getMonth()+1)+'-'+(rdv.dateHeure.getYear()+1900),
+                total: total
+            };
+            allRdv.push(rdvInfo);
+        }
+
+        commission = []
+
+        allRdv.forEach(
+            item => {
+                const index = commission.findIndex(element => element.date === item.date);
+                if(index !== -1){
+                    commission[index].total += item.total;
+                } else{
+                    commission.push({date: item.date, total: item.total});
+                }
+        });
 
         const reponse = {
             paiement: resultPaiement,
-            depense: resultDepense
+            depense: resultDepense,
+            commission: commission
         }; 
         res.json(reponse)
     }
