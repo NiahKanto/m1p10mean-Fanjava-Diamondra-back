@@ -3,6 +3,7 @@ const User = db.user;
 const RDV = db.rdv;
 const Paiement = db.paiement;
 const Service = db.service; 
+const Depense = db.depense; 
 const userController = require('../controller/userController');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
@@ -792,6 +793,55 @@ exports.statPaiementDay = async (req, res) => {
             }
         ])
         res.json(result)
+    }
+    catch(error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+exports.statBenefice = async (req, res) => {
+    const user = req.user;
+    const isManager = await userController.testManager(user.roles);  
+    if (!isManager) {
+        return res.status(403).json({ message: "Vous n'êtes pas un manager." });
+    }
+
+    try{
+        const year = (new Date()).getFullYear();
+
+        const resultPaiement = await Paiement.aggregate([
+            {
+                $match: {
+                    datePaiement: { $gte: new Date(year,0,1), $lte: new Date(year,12,1)}
+                },
+            },
+            {
+                $group: {
+                    _id: { month: {$month: "$datePaiement"}, year: {$year: "$datePaiement"}},
+                    total: {$sum: "$montant"}
+                },
+            }
+        ]);
+
+        const resultDepense = await Depense.aggregate([
+            {
+                $match: {
+                    date: { $gte: new Date(year,0,1), $lte: new Date(year,12,1)}
+                },
+            },
+            {
+                $group: {
+                    _id: { month: {$month: "$date"}, year: {$year: "$date"}},
+                    total: {$sum: "$prix"}
+                },
+            }
+        ])
+
+        const reponse = {
+            paiement: resultPaiement,
+            depense: resultDepense
+        }; 
+        res.json(reponse)
     }
     catch(error) {
         res.status(500).json({ message: error.message });

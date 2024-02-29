@@ -12,6 +12,7 @@ allSchemas.service = require("./service");
 allSchemas.rdv = require("./RDV")
 allSchemas.paiement = require("./paiement");
 allSchemas.offre = require("./offre");
+allSchemas.depense = require("./depense");
 
 allSchemas.ROLES = ["client", "employe", "manager"];
 

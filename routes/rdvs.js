@@ -51,4 +51,6 @@ router.get('/statPaiementMonth', authenticateToken,rdvController.statPaiementMon
 
 router.get('/statPaiementDay/:month', authenticateToken,rdvController.statPaiementDay);
 
+router.get('/statBenefice', authenticateToken,rdvController.statBenefice);
+
 module.exports = router;

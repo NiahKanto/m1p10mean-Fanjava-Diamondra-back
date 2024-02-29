@@ -10,6 +10,7 @@ var clientsRouters = require('./routes/clients');
 var serviceRouters = require('./routes/services');
 var rdvRouters = require('./routes/rdvs');
 var offreRouters = require('./routes/offres')
+var depenseRouters = require('./routes/depenses')
 
 var cors = require('cors');
 
@@ -35,6 +36,7 @@ app.use('/', user_router);
 app.use('/service', serviceRouters);
 app.use('/rdv', rdvRouters);
 app.use('/offre', offreRouters);
+app.use('/depense', depenseRouters);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
