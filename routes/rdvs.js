@@ -47,4 +47,8 @@ router.get('/statRDVDay/:month', authenticateToken,rdvController.statRDVDay);
 
 router.get('/detailsServ4RDVbyID/:idRDV/', authenticateToken,rdvController.detailsServ4RDVbyID);
 
+router.get('/statPaiementMonth', authenticateToken,rdvController.statPaiementMonth);
+
+router.get('/statPaiementDay/:month', authenticateToken,rdvController.statPaiementDay);
+
 module.exports = router;

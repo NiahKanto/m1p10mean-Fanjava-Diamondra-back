@@ -728,3 +728,72 @@ exports.detailsServ4RDVbyID = async (req, res) => {
         res.status(500).json({message: error.message})
     }
 }
+
+exports.statPaiementMonth = async (req, res) => {
+    const user = req.user;
+    const isManager = await userController.testManager(user.roles);  
+    if (!isManager) {
+        return res.status(403).json({ message: "Vous n'êtes pas un manager." });
+    }
+
+    try{
+        const year = (new Date()).getFullYear();
+
+        const result = await Paiement.aggregate([
+            {
+                $match: {
+                    datePaiement: { $gte: new Date(year,0,1), $lte: new Date(year,12,1)}
+                },
+            },
+            {
+                $group: {
+                    _id: { month: {$month: "$datePaiement"}, year: {$year: "$datePaiement"}},
+                    total: {$sum: "$montant"}
+                },
+            }
+        ])
+        res.json(result)
+    }
+    catch(error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+
+exports.statPaiementDay = async (req, res) => {
+    const user = req.user;
+    const isManager = await userController.testManager(user.roles);  
+    if (!isManager) {
+        return res.status(403).json({ message: "Vous n'êtes pas un manager." });
+    }
+
+    const { month } = req.params;
+    m = parseInt(month)
+
+    try{
+        const year = (new Date()).getFullYear();
+
+        const result = await Paiement.aggregate([
+            {
+                $match: {
+                    $expr: {
+                        $and: [
+                            { $eq: [{ $month: '$datePaiement' },  m ] },
+                            { $eq: [{ $year: '$datePaiement' }, year] }
+                        ]
+                    }
+                },
+            },
+            {
+                $group: {
+                    _id: { day: {$dayOfMonth: "$datePaiement"}, month: {$month: "$datePaiement"}, year: {$year: "$datePaiement"}},
+                    total: {$sum: "$montant"}
+                },
+            }
+        ])
+        res.json(result)
+    }
+    catch(error) {
+        res.status(500).json({ message: error.message });
+    }
+}
