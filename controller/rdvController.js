@@ -166,13 +166,16 @@ exports.listByClient = async (req, res) => {
         const rdvs = await RDV.find({idUser: user.id}).sort({dateHeure:-1});
         totalRdvs = [];
         const promises = rdvs.map(async (rdv) =>{
+            const paiements = await Paiement.find({idRDV: rdv._id});
             totalMontant = 0;
             totalDuree = 0;
-            rdv.service.forEach(service => {
-                totalMontant = totalMontant + service.prix;
-                totalDuree = totalDuree + service.delai;
+            
+            rdv.service.forEach(serv => {
+                
+                totalMontant +=  serv.prix;
+                totalDuree += serv.delai;
+                
             })
-            const paiements = await Paiement.find({idRDV: rdv._id});
             totalPaiement = 0;
             paiements.forEach((paiement) =>{
                 totalPaiement += paiement.montant
@@ -185,7 +188,6 @@ exports.listByClient = async (req, res) => {
             return total;
         });
         totalRdvs = await Promise.all(promises);
-        console.log(totalRdvs)
         res.json({totalRdvs,rdvs});
     } catch (error) {
         res.status(500).json({ message: error.message });
